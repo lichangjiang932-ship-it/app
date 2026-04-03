@@ -1,0 +1,52 @@
+<!--components/skeleton/skeleton.wxml-->
+<view class="sk-wrap" wx:if="{{loading}}">
+  <!-- Banner 骨架 -->
+  <view wx:if="{{sections.banner}}" class="sk-section">
+    <view class="sk-banner skeleton"></view>
+    <view class="sk-dots">
+      <view class="sk-dot" wx:for="{{3}}" wx:key="*this"></view>
+    </view>
+  </view>
+
+  <!-- 金刚区骨架 -->
+  <view wx:if="{{sections.tools}}" class="sk-section">
+    <view class="sk-tools">
+      <view class="sk-tool" wx:for="{{4}}" wx:key="*this">
+        <view class="sk-tool-icon skeleton"></view>
+        <view class="sk-tool-text skeleton"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 横向滚动骨架 -->
+  <view wx:if="{{sections.hscroll}}" class="sk-section">
+    <view class="sk-hscroll">
+      <view class="sk-hcard skeleton" wx:for="{{4}}" wx:key="*this"></view>
+    </view>
+  </view>
+
+  <!-- 瀑布流骨架 -->
+  <view wx:if="{{sections.waterfall}}" class="sk-section">
+    <view class="sk-waterfall">
+      <view class="sk-col">
+        <view class="sk-wcard skeleton" wx:for="{{3}}" wx:key="*this" style="height: {{240 + index * 80}}rpx;"></view>
+      </view>
+      <view class="sk-col">
+        <view class="sk-wcard skeleton" wx:for="{{3}}" wx:key="*this" style="height: {{280 + index * 60}}rpx;"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 列表骨架 -->
+  <view wx:if="{{sections.list}}" class="sk-section">
+    <view class="sk-list">
+      <view class="sk-list-item" wx:for="{{5}}" wx:key="*this">
+        <view class="sk-avatar skeleton"></view>
+        <view class="sk-lines">
+          <view class="sk-line skeleton" style="width: {{60 + index * 8}}%;"></view>
+          <view class="sk-line short skeleton"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

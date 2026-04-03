@@ -1,0 +1,266 @@
+<!--pages/index/index.wxml-->
+<view class="page">
+  <!-- 自定义导航栏（含胶囊适配） -->
+  <nav-bar title="妙鸭" title-gradient="{{true}}" fixed="{{true}}" placeholder="{{true}}" bgColor="rgba(255,255,255,0.92)">
+    <view slot="right" class="nav-actions">
+      <view class="nav-btn hover-opacity" bindtap="onSearch"><text>🔍</text></view>
+      <view class="nav-btn hover-opacity" bindtap="onMessage">
+        <text>🔔</text>
+        <view class="nav-badge" wx:if="{{msgCount > 0}}">{{msgCount > 99 ? '99+' : msgCount}}</view>
+      </view>
+      <view class="nav-avatar-wrap hover-opacity" bindtap="goProfile">
+        <image src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" class="nav-avatar" />
+      </view>
+    </view>
+  </nav-bar>
+
+  <!-- 骨架屏 -->
+  <skeleton loading="{{loading}}" sections="{{skeletonSections}}"></skeleton>
+
+  <!-- 真实内容 -->
+  <block wx:if="{{!loading}}">
+    <!-- 2.1 轮播图 Banner -->
+    <view class="banner-section">
+      <swiper
+        class="banner-swiper"
+        circular
+        autoplay
+        interval="4000"
+        duration="500"
+        indicator-dots="{{false}}"
+        bindchange="onBannerChange"
+      >
+        <swiper-item wx:for="{{banners}}" wx:key="id">
+          <view
+            class="banner-item hover-opacity"
+            style="background: linear-gradient(135deg, {{item.color1}}, {{item.color2}});"
+            bindtap="onBannerTap"
+            data-item="{{item}}"
+          >
+            <view class="banner-content">
+              <view class="banner-tag tag">{{item.tag}}</view>
+              <view class="banner-title">{{item.title}}</view>
+              <view class="banner-desc">{{item.desc}}</view>
+              <view class="banner-btn">立即体验 ›</view>
+            </view>
+            <view class="banner-deco">
+              <text class="banner-emoji">{{item.emoji}}</text>
+              <view class="banner-circle c1"></view>
+              <view class="banner-circle c2"></view>
+              <view class="banner-circle c3"></view>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+      <!-- 自定义指示点 -->
+      <view class="banner-dots">
+        <view class="dot {{index === bannerIndex ? 'active' : ''}}" wx:for="{{banners}}" wx:key="id" />
+      </view>
+    </view>
+
+    <!-- 2.2 金刚区 — 四列网格 -->
+    <view class="section-header">
+      <text class="section-title gradient-text">核心工具</text>
+    </view>
+    <view class="tools-grid">
+      <view
+        class="tool-card hover-opacity"
+        wx:for="{{coreTools}}"
+        wx:key="id"
+        hover-class="tap"
+        hover-stay-time="100"
+        bindtap="onToolTap"
+        data-item="{{item}}"
+      >
+        <view class="tool-icon-wrap" style="background: {{item.bg}};">
+          <text class="tool-emoji">{{item.emoji}}</text>
+        </view>
+        <text class="tool-name">{{item.name}}</text>
+        <text class="tool-desc">{{item.desc}}</text>
+        <view class="tool-hot" wx:if="{{item.hot}}">🔥</view>
+      </view>
+    </view>
+
+    <!-- 2.4 标题栏 + 横向推荐 -->
+    <view class="section-header">
+      <view class="section-title-wrap">
+        <text class="section-icon">🔥</text>
+        <text class="section-title">热门推荐</text>
+      </view>
+      <view class="section-more hover-opacity" bindtap="seeAllTemplates">
+        <text>更多</text>
+        <text class="more-arrow">›</text>
+      </view>
+    </view>
+    <scroll-view
+      class="hot-scroll"
+      scroll-x
+      enable-flex
+      enhanced
+      show-scrollbar="{{false}}"
+      deceleration-rate="fast"
+    >
+      <view
+        class="hot-card"
+        wx:for="{{hotTemplates}}"
+        wx:key="id"
+        hover-class="tap"
+        hover-stay-time="100"
+        bindtap="onTemplateTap"
+        data-id="{{item.id}}"
+      >
+        <image
+          class="hot-img"
+          src="{{item.cover}}"
+          mode="aspectFill"
+          lazy-load="{{true}}"
+          binderror="onImgError"
+          data-id="{{item.id}}"
+        />
+        <view class="hot-info">
+          <text class="hot-name ellipsis">{{item.name}}</text>
+          <text class="hot-count">{{item.useCount}}人用过</text>
+        </view>
+        <view class="hot-badge tag" wx:if="{{item.isNew}}">NEW</view>
+      </view>
+    </scroll-view>
+
+    <!-- 3.1 吸顶分类导航 -->
+    <view class="category-bar {{categoryFixed ? 'sticky' : ''}}" id="categoryBar">
+      <scroll-view class="category-scroll" scroll-x enable-flex enhanced show-scrollbar="{{false}}">
+        <view
+          class="cat-item {{currentCategory === item.id ? 'active' : ''}}"
+          wx:for="{{categories}}"
+          wx:key="id"
+          hover-class="tap-bg"
+          hover-stay-time="100"
+          bindtap="switchCategory"
+          data-id="{{item.id}}"
+        >
+          <text class="cat-emoji">{{item.emoji}}</text>
+          <text>{{item.name}}</text>
+          <view class="cat-line" wx:if="{{currentCategory === item.id}}"></view>
+        </view>
+      </scroll-view>
+    </view>
+    <view wx:if="{{categoryFixed}}" class="category-placeholder"></view>
+
+    <!-- 2.3 瀑布流（核心） -->
+    <view class="section-header waterfall-hd">
+      <view class="section-title-wrap">
+        <text class="section-icon">✨</text>
+        <text class="section-title">作品精选</text>
+      </view>
+    </view>
+    <scroll-view
+      class="waterfall-scroll"
+      scroll-y
+      enhanced
+      refresher-enabled
+      refresher-default-style="black"
+      refresher-background="#f5f5f7"
+      refresher-triggered="{{refresherTriggered}}"
+      bindrefresherrefresh="onRefresh"
+      bindscrolltolower="onLoadMore"
+      lower-threshold="200"
+    >
+      <view class="waterfall">
+        <view class="waterfall-col">
+          <view
+            class="waterfall-card"
+            wx:for="{{leftItems}}"
+            wx:key="id"
+            hover-class="tap"
+            hover-stay-time="100"
+            bindtap="onWorkTap"
+            data-id="{{item.id}}"
+          >
+            <view class="wf-img-wrap">
+              <image
+                class="wf-img"
+                src="{{item.cover}}"
+                mode="aspectFill"
+                lazy-load="{{true}}"
+                style="height: {{item.imgHeight}}rpx;"
+                binderror="onImgError"
+                data-id="{{item.id}}"
+              />
+              <view class="wf-tag tag" wx:if="{{item.style}}">{{item.style}}</view>
+            </view>
+            <view class="wf-info">
+              <text class="wf-title ellipsis">{{item.name}}</text>
+              <view class="wf-meta">
+                <view class="wf-author">
+                  <image class="author-avatar" src="{{item.authorAvatar || '/images/default-avatar.png'}}" mode="aspectFill" />
+                  <text class="author-name ellipsis">{{item.authorName || '妙鸭用户'}}</text>
+                </view>
+                <view
+                  class="wf-like"
+                  catchtap="onLike"
+                  data-id="{{item.id}}"
+                  data-liked="{{item.liked}}"
+                  hover-class="tap"
+                  hover-stay-time="100"
+                >
+                  <text class="like-icon">{{item.liked ? '❤️' : '🤍'}}</text>
+                  <text class="like-count">{{item.likeCount || 0}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="waterfall-col">
+          <view
+            class="waterfall-card"
+            wx:for="{{rightItems}}"
+            wx:key="id"
+            hover-class="tap"
+            hover-stay-time="100"
+            bindtap="onWorkTap"
+            data-id="{{item.id}}"
+          >
+            <view class="wf-img-wrap">
+              <image
+                class="wf-img"
+                src="{{item.cover}}"
+                mode="aspectFill"
+                lazy-load="{{true}}"
+                style="height: {{item.imgHeight}}rpx;"
+                binderror="onImgError"
+                data-id="{{item.id}}"
+              />
+              <view class="wf-tag tag" wx:if="{{item.style}}">{{item.style}}</view>
+            </view>
+            <view class="wf-info">
+              <text class="wf-title ellipsis">{{item.name}}</text>
+              <view class="wf-meta">
+                <view class="wf-author">
+                  <image class="author-avatar" src="{{item.authorAvatar || '/images/default-avatar.png'}}" mode="aspectFill" />
+                  <text class="author-name ellipsis">{{item.authorName || '妙鸭用户'}}</text>
+                </view>
+                <view
+                  class="wf-like"
+                  catchtap="onLike"
+                  data-id="{{item.id}}"
+                  data-liked="{{item.liked}}"
+                  hover-class="tap"
+                  hover-stay-time="100"
+                >
+                  <text class="like-icon">{{item.liked ? '❤️' : '🤍'}}</text>
+                  <text class="like-count">{{item.likeCount || 0}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载更多 -->
+      <view class="load-more">
+        <view class="spinner" wx:if="{{isLoadingMore}}"></view>
+        <text class="load-text">{{isLoadingMore ? '加载中...' : (noMore ? '— 没有更多了 —' : '下拉加载更多')}}</text>
+      </view>
+      <view class="safe-area-bottom" style="height: 160rpx;"></view>
+    </scroll-view>
+  </block>
+</view>

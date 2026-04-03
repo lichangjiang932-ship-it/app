@@ -1,0 +1,70 @@
+<!--subpkg/result/result.wxml-->
+<view class="page">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-bar-inner" style="height: {{navBarHeight}}px;">
+      <view class="nav-back" bindtap="() => wx.navigateBack()">
+        <text class="back-icon">‹</text>
+      </view>
+      <text class="nav-title">生成结果</text>
+      <view class="nav-right"></view>
+    </view>
+  </view>
+  <view class="nav-placeholder" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+
+  <block wx:if="{{task}}">
+    <view class="hero">
+      <text class="hero-emoji">🎉</text>
+      <text class="hero-title">写真生成成功！</text>
+      <text class="hero-desc">快来看看你的专属大片吧</text>
+    </view>
+
+    <swiper class="result-swiper" circular indicator-dots="{{false}}">
+      <swiper-item wx:for="{{task.results}}" wx:key="*this">
+        <image class="result-img" src="{{item}}" mode="aspectFit" bindtap="previewImage" data-url="{{item}}" data-urls="{{task.results}}" />
+      </swiper-item>
+    </swiper>
+
+    <view class="thumbs">
+      <scroll-view class="thumb-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="thumb {{currentThumb === index ? 'active' : ''}}" wx:for="{{task.results}}" wx:key="*this" bindtap="switchThumb" data-index="{{index}}">
+          <image src="{{item}}" mode="aspectFill" />
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="actions">
+      <view class="act-btn primary" bindtap="saveToAlbum">
+        <text class="act-icon">💾</text>
+        <text>保存到相册</text>
+      </view>
+      <view class="act-btn" bindtap="saveAll">
+        <text class="act-icon">📦</text>
+        <text>全部保存</text>
+      </view>
+      <button class="act-btn share" open-type="share">
+        <text class="act-icon">📤</text>
+        <text>分享</text>
+      </button>
+    </view>
+
+    <view class="retry-row">
+      <view class="retry-btn" bindtap="retryWithSame"><text>🔄</text><text>再做一次</text></view>
+      <view class="retry-btn" bindtap="chooseNewTemplate"><text>🎨</text><text>换模板</text></view>
+    </view>
+
+    <view class="reco-section" wx:if="{{recommendTemplates.length > 0}}">
+      <text class="reco-title">🔥 你可能还喜欢</text>
+      <scroll-view class="reco-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="reco-card" wx:for="{{recommendTemplates}}" wx:key="id" bindtap="onRecommendTap" data-id="{{item.id}}">
+          <image class="reco-img" src="{{item.cover}}" mode="aspectFill" />
+          <text class="reco-name ellipsis">{{item.name}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </block>
+
+  <view wx:if="{{!task}}" class="loading-center">
+    <view class="mini-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

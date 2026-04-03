@@ -1,0 +1,60 @@
+<!--subpkg/detail/detail.wxml-->
+<view class="page">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-bar-inner" style="height: {{navBarHeight}}px;">
+      <view class="nav-back" bindtap="() => wx.navigateBack()">
+        <text class="back-icon">‹</text>
+      </view>
+      <text class="nav-title">{{template.name || '模板详情'}}</text>
+      <view class="nav-right"></view>
+    </view>
+  </view>
+  <view class="nav-placeholder" style="height: {{statusBarHeight + navBarHeight}}px;"></view>
+
+  <block wx:if="{{template}}">
+    <image class="preview-img" src="{{template.cover}}" mode="aspectFill" bindtap="previewCover" />
+    <view class="info-card">
+      <view class="info-top">
+        <view>
+          <view class="info-name-row">
+            <text class="info-name">{{template.name}}</text>
+            <view class="info-tag">{{template.style}}</view>
+          </view>
+          <text class="info-desc">{{template.description || 'AI智能生成，一键拥有专属大片'}}</text>
+          <view class="info-stats">
+            <text>{{template.useCount || 0}}人制作过</text>
+            <text class="dot">·</text>
+            <text>{{template.likeCount || 0}}人喜欢</text>
+          </view>
+        </view>
+        <view class="fav-btn" bindtap="toggleFav">
+          <text>{{isFavorited ? '❤️' : '🤍'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="examples" wx:if="{{template.examples && template.examples.length > 0}}">
+      <text class="ex-title">📸 效果示例</text>
+      <scroll-view class="ex-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="ex-item" wx:for="{{template.examples}}" wx:key="*this">
+          <image src="{{item}}" mode="aspectFill" bindtap="previewExample" data-urls="{{template.examples}}" data-index="{{index}}" />
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="notice-card">
+      <text class="notice-title">💡 使用须知</text>
+      <view class="notice-item"><text class="n-num">1</text><text>上传1张正面照 + 多张半身照</text></view>
+      <view class="notice-item"><text class="n-num">2</text><text>AI根据模板风格生成写真</text></view>
+      <view class="notice-item"><text class="n-num">3</text><text>生成时间约1-3分钟</text></view>
+    </view>
+
+    <view class="bottom-bar safe-area-bottom">
+      <view class="price">
+        <text class="price-label">费用</text>
+        <text class="price-val {{template.price > 0 ? '' : 'free'}}">{{template.price > 0 ? '¥'+template.price : '免费'}}</text>
+      </view>
+      <view class="btn-gradient go-btn" bindtap="goCreate">开始制作 ✨</view>
+    </view>
+  </block>
+</view>

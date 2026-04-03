@@ -1,0 +1,58 @@
+/* components/nav-bar/nav-bar.wxss */
+.nav-bar-wrap {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1rpx solid rgba(0,0,0,0.04);
+}
+
+.nav-bar-inner {
+  display: flex;
+  align-items: center;
+  padding: 0 12rpx;
+}
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: 1rpx;
+}
+
+.nav-back, .nav-home {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.back-icon {
+  font-size: 48rpx;
+  color: #1a1a2e;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.home-icon {
+  font-size: 36rpx;
+  color: #1a1a2e;
+}
+
+.hover-opacity { transition: opacity 0.2s; }
+.hover-opacity:active { opacity: 0.5; }

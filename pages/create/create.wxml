@@ -1,0 +1,220 @@
+<!--pages/create/create.wxml-->
+<view class="page">
+  <nav-bar title="{{stepTitles[currentStep - 1]}}" back="{{currentStep > 1}}" fixed="{{true}}" placeholder="{{true}}">
+    <view slot="right" class="nav-tip hover-opacity" wx:if="{{currentStep === 1}}" bindtap="showTip">
+      <text>❓</text>
+    </view>
+  </nav-bar>
+
+  <!-- 步骤指示器 -->
+  <view class="steps">
+    <view class="step {{currentStep >= 1 ? 'active' : ''}} {{currentStep > 1 ? 'done' : ''}}">
+      <view class="step-num">{{currentStep > 1 ? '✓' : '1'}}</view>
+      <text class="step-text">上传照片</text>
+    </view>
+    <view class="step-line {{currentStep > 1 ? 'active' : ''}}"></view>
+    <view class="step {{currentStep >= 2 ? 'active' : ''}} {{currentStep > 2 ? 'done' : ''}}">
+      <view class="step-num">{{currentStep > 2 ? '✓' : '2'}}</view>
+      <text class="step-text">选择模板</text>
+    </view>
+    <view class="step-line {{currentStep > 2 ? 'active' : ''}}"></view>
+    <view class="step {{currentStep >= 3 ? 'active' : ''}}">
+      <view class="step-num">3</view>
+      <text class="step-text">生成写真</text>
+    </view>
+  </view>
+
+  <!-- ===== Step 1: 上传照片 ===== -->
+  <view class="step-content" wx:if="{{currentStep === 1}}">
+    <!-- 5.3 进度指示区 -->
+    <view class="progress-section">
+      <view class="progress-bar-8rpx">
+        <view class="progress-fill" style="width: {{Math.min(multiPhotos.length / 21 * 100, 100)}}%;"></view>
+      </view>
+      <view class="progress-text">
+        <text wx:if="{{multiPhotos.length < 5}}">已上传 {{multiPhotos.length}} 张，还需 {{5 - multiPhotos.length}} 张</text>
+        <text wx:elif="{{multiPhotos.length < 21}}" class="good">已上传 {{multiPhotos.length}} 张，再传 {{21 - multiPhotos.length}} 张效果更佳</text>
+        <text wx:else class="great">✅ 照片数量充足！</text>
+      </view>
+    </view>
+
+    <!-- 5.2 照片网格区（3列） -->
+    <view class="photo-grid-section">
+      <!-- 正面照（必填） -->
+      <view class="upload-label">
+        <text class="label-dot"></text>
+        <text>正面清晰照 *</text>
+      </view>
+      <view class="front-card" bindtap="chooseFrontPhoto">
+        <block wx:if="{{!frontPhoto}}">
+          <text class="front-icon">😊</text>
+          <text class="front-hint">点击上传</text>
+        </block>
+        <block wx:else>
+          <image class="front-img" src="{{frontPhoto}}" mode="aspectFill" />
+          <view class="front-replace" catchtap="chooseFrontPhoto">更换</view>
+          <view class="photo-delete radius-full" catchtap="deleteFrontPhoto">✕</view>
+        </block>
+      </view>
+
+      <!-- 多张照片网格 -->
+      <view class="upload-label" style="margin-top: 24rpx;">
+        <text class="label-dot warn"></text>
+        <text>生活照/半身照 *</text>
+      </view>
+      <view class="photo-grid">
+        <view class="photo-cell" wx:for="{{multiPhotos}}" wx:key="*this">
+          <image class="photo-img" src="{{item}}" mode="aspectFill" />
+          <view class="photo-delete radius-full" catchtap="deleteMultiPhoto" data-index="{{index}}">✕</view>
+          <!-- 质量反馈遮罩（5.4 不合格标记） -->
+          <view class="photo-quality-mask" wx:if="{{item.qualityLow}}">
+            <text class="quality-tag tag">质量低</text>
+          </view>
+        </view>
+        <view class="photo-cell add" bindtap="chooseMultiPhotos" wx:if="{{multiPhotos.length < 30}}">
+          <text class="add-icon">+</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 拍摄建议卡片 -->
+    <view class="tips-card radius-md">
+      <text class="tips-title">💡 拍摄建议</text>
+      <view class="tips-grid">
+        <view class="tip good"><text>✅</text><text>不同角度</text></view>
+        <view class="tip good"><text>✅</text><text>不同表情</text></view>
+        <view class="tip good"><text>✅</text><text>清晰面部</text></view>
+        <view class="tip good"><text>✅</text><text>自然光线</text></view>
+        <view class="tip bad"><text>❌</text><text>多人合照</text></view>
+        <view class="tip bad"><text>❌</text><text>遮挡面部</text></view>
+        <view class="tip bad"><text>❌</text><text>模糊照片</text></view>
+        <view class="tip bad"><text>❌</text><text>过度美颜</text></view>
+      </view>
+    </view>
+
+    <!-- 5.5 底部操作栏 -->
+    <view class="bottom-bar safe-area-bottom">
+      <view class="bottom-secondary">
+        <view class="btn-secondary bottom-btn-sm" bindtap="chooseFromAlbum">
+          <text>🖼️</text>
+          <text>相册</text>
+        </view>
+        <view class="btn-secondary bottom-btn-sm" bindtap="chooseFromCamera">
+          <text>📷</text>
+          <text>拍照</text>
+        </view>
+      </view>
+      <view class="btn-gradient bottom-btn-main {{canNext ? '' : 'disabled'}}" bindtap="goNext">
+        下一步：选择模板 →
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Step 2: 选择模板 ===== -->
+  <view class="step-content tpl-page" wx:if="{{currentStep === 2}}">
+    <!-- 4.2 横向风格导航条 -->
+    <scroll-view class="style-scroll" scroll-x enable-flex enhanced show-scrollbar="{{false}}">
+      <view
+        class="style-card {{currentTplCategory === item.id ? 'active' : ''}}"
+        wx:for="{{tplCategories}}"
+        wx:key="id"
+        hover-class="tap-bg"
+        hover-stay-time="100"
+        bindtap="switchTplCategory"
+        data-id="{{item.id}}"
+      >
+        <text class="style-emoji">{{item.emoji}}</text>
+        <text class="style-name">{{item.name}}</text>
+        <view class="style-active-line" wx:if="{{currentTplCategory === item.id}}"></view>
+      </view>
+    </scroll-view>
+
+    <!-- 4.4 模板瀑布流 -->
+    <view class="tpl-waterfall">
+      <view class="tpl-col">
+        <view
+          class="tpl-card radius-md {{selectedTemplate === item.id ? 'selected' : ''}}"
+          wx:for="{{leftTemplates}}"
+          wx:key="id"
+          hover-class="tap"
+          hover-stay-time="100"
+          bindtap="selectTemplate"
+          data-id="{{item.id}}"
+        >
+          <view class="tpl-img-wrap">
+            <image class="tpl-img" src="{{item.cover}}" mode="aspectFill" lazy-load="{{true}}" />
+            <view class="tpl-check-overlay" wx:if="{{selectedTemplate === item.id}}">
+              <view class="tpl-check radius-full">✓</view>
+            </view>
+            <view class="tpl-badge tag" wx:if="{{item.isNew}}">NEW</view>
+            <view class="tpl-count">{{item.useCount}}人用过</view>
+          </view>
+          <view class="tpl-info">
+            <text class="tpl-name ellipsis">{{item.name}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="tpl-col">
+        <view
+          class="tpl-card radius-md {{selectedTemplate === item.id ? 'selected' : ''}}"
+          wx:for="{{rightTemplates}}"
+          wx:key="id"
+          hover-class="tap"
+          hover-stay-time="100"
+          bindtap="selectTemplate"
+          data-id="{{item.id}}"
+        >
+          <view class="tpl-img-wrap">
+            <image class="tpl-img" src="{{item.cover}}" mode="aspectFill" lazy-load="{{true}}" />
+            <view class="tpl-check-overlay" wx:if="{{selectedTemplate === item.id}}">
+              <view class="tpl-check radius-full">✓</view>
+            </view>
+            <view class="tpl-badge tag" wx:if="{{item.isNew}}">NEW</view>
+            <view class="tpl-count">{{item.useCount}}人用过</view>
+          </view>
+          <view class="tpl-info">
+            <text class="tpl-name ellipsis">{{item.name}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 4.5 底部固定按钮区 -->
+    <view class="bottom-bar safe-area-bottom">
+      <view class="bottom-row">
+        <view class="btn-secondary bottom-btn-back" bindtap="goBack">上一步</view>
+        <view class="btn-gradient bottom-btn-main flex-1 {{selectedTemplate ? '' : 'disabled'}}" bindtap="goNext">
+          开始生成 ✨
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== Step 3: 生成中（6.2 排队等待页） ===== -->
+  <view class="step-content generating" wx:if="{{currentStep === 3}}">
+    <view class="gen-container">
+      <view class="gen-orbs">
+        <view class="orb orb-1"></view>
+        <view class="orb orb-2"></view>
+        <view class="orb orb-3"></view>
+        <view class="orb-core">✨</view>
+      </view>
+      <!-- 间距 48rpx -->
+      <text class="gen-title">{{genStatus.title}}</text>
+      <text class="gen-desc">{{genStatus.desc}}</text>
+      <!-- 间距 48rpx -->
+      <view class="gen-progress-wrap">
+        <view class="gen-progress-bar">
+          <view class="gen-progress-fill" style="width: {{genStatus.progress}}%;"></view>
+        </view>
+        <text class="gen-pct">{{genStatus.progress}}%</text>
+      </view>
+      <text class="gen-tip">AI正在精心创作中，通常需要1-3分钟 ☕</text>
+      <!-- 间距 64rpx -->
+      <view class="gen-subscribe" bindtap="subscribeMsg">
+        <text class="gen-sub-icon">🔔</text>
+        <text>完成后通知我</text>
+      </view>
+    </view>
+  </view>
+</view>

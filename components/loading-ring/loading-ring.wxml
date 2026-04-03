@@ -1,0 +1,8 @@
+<!--components/loading-ring/loading-ring.wxml-->
+<view class="loading-container">
+  <view class="ring">
+    <view class="ring-segment seg-1"></view>
+    <view class="ring-segment seg-2"></view>
+    <view class="ring-segment seg-3"></view>
+  </view>
+</view>

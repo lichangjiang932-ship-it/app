@@ -1,0 +1,365 @@
+/* pages/profile/profile.wxss */
+/* 
+ * 视觉层次：8rpx 基线网格
+ * 头部卡片：渐变底部圆角 48rpx
+ * 菜单列表：底部圆角 24rpx
+ */
+
+.page {
+  min-height: 100vh;
+  background: #f5f5f7;
+}
+
+.nav-btn {
+  width: 56rpx; height: 56rpx;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.nav-icon { font-size: 34rpx; }
+
+/* ===== 8.1 头部个人信息卡 ===== */
+/* 背景：渐变色从上到下 #FFE6E6 → #FFFFFF */
+/* 底部圆角 48rpx */
+.profile-card {
+  margin: 16rpx 24rpx 0; /* 三级留白 + 对齐锚点 24rpx */
+  border-radius: 32rpx 32rpx 48rpx 48rpx; /* 底部最大圆角 */
+  overflow: hidden;
+  position: relative;
+}
+
+.card-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #FF6B9D 0%, #C44FE2 50%, #6C5CE7 100%);
+}
+
+.card-deco {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+
+.d1 { width: 260rpx; height: 260rpx; right: -60rpx; top: -80rpx; }
+.d2 { width: 180rpx; height: 180rpx; left: -40rpx; bottom: -40rpx; }
+.d3 { width: 100rpx; height: 100rpx; right: 80rpx; bottom: 20rpx; }
+
+/* 内容层：Flex 上下结构 */
+.card-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 28rpx 0;
+}
+
+.card-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx; /* 二级留白近似 */
+}
+
+/* 头像：圆形，白色边框 */
+.avatar-wrap { position: relative; }
+
+.avatar {
+  width: 120rpx; /* 规范要求 120rpx */
+  height: 120rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255,255,255,0.4);
+}
+
+.avatar-edit {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 36rpx; height: 36rpx;
+  background: rgba(255,255,255,0.9);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18rpx;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.user-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1rpx 4rpx rgba(0,0,0,0.1);
+}
+
+.user-id {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.7);
+}
+
+.vip-badge {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(12px);
+  padding: 10rpx 22rpx;
+  border-radius: 32rpx; /* 次要按钮圆角 */
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+.vip-icon { font-size: 24rpx; }
+
+/* 统计信息：三列等宽 */
+.stats-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  padding: 24rpx 0; /* 二级留白 */
+  margin: 16rpx 28rpx 0; /* 三级留白 */
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(10px);
+  border-radius: 20rpx;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx; /* 四级留白 */
+}
+
+.stat-num {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.stat-label {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.75);
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 36rpx;
+  background: rgba(255,255,255,0.2);
+}
+
+/* ===== Section ===== */
+.section {
+  margin: 24rpx 24rpx 0; /* 二级留白 + 对齐锚点 */
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx; /* 三级留白 */
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+/* Tab 切换 */
+.section-tabs {
+  display: flex;
+  gap: 4rpx;
+  background: #fff;
+  border-radius: 32rpx; /* 次要按钮圆角 */
+  padding: 4rpx;
+}
+
+.tab {
+  padding: 8rpx 22rpx;
+  border-radius: 28rpx;
+  font-size: 22rpx;
+  color: #999;
+  transition: all 0.3s;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #FF6B9D, #C44FE2);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ===== 8.2 我的作品瀑布流 ===== */
+.works-skeleton {
+  display: flex;
+  gap: 14rpx;
+}
+
+.ws-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.ws-card { border-radius: 20rpx; }
+
+.works-waterfall {
+  display: flex;
+  gap: 14rpx; /* 三级留白近似 */
+}
+
+.works-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+/* 卡片圆角 20rpx（中卡片） */
+.works-card {
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
+  position: relative;
+  transition: transform 0.2s;
+}
+
+.works-card:active { transform: scale(0.97); }
+
+.works-img {
+  width: 100%;
+  display: block;
+  background: #f0f0f0;
+}
+
+.works-info {
+  padding: 12rpx 14rpx; /* 三级留白近似 */
+}
+
+.works-name {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 4rpx;
+}
+
+.works-time {
+  font-size: 20rpx;
+  color: #bbb;
+}
+
+/* 删除图标：圆形 */
+.works-status {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+}
+
+.works-status.completed { background: rgba(0,184,148,0.85); color: #fff; }
+.works-status.processing { background: rgba(255,107,157,0.85); color: #fff; }
+
+/* ===== 空状态 ===== */
+.empty-state {
+  background: #fff;
+  border-radius: 24rpx; /* 卡片圆角 */
+  padding: 48rpx; /* 一级留白 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx; /* 四级留白 */
+}
+
+.empty-emoji { font-size: 72rpx; margin-bottom: 8rpx; }
+.empty-text { font-size: 30rpx; font-weight: 600; color: #1a1a2e; }
+.empty-hint { font-size: 24rpx; color: #999; margin-bottom: 16rpx; }
+
+.empty-btn {
+  background: linear-gradient(135deg, #FF6B9D, #C44FE2);
+  color: #fff;
+  padding: 14rpx 48rpx;
+  border-radius: 48rpx; /* 胶囊形 */
+  font-size: 28rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(255,107,157,0.3);
+}
+
+/* ===== 8.3 功能菜单列表 ===== */
+.menu-section {
+  margin: 24rpx 24rpx 0; /* 二级留白 */
+}
+
+.menu-group {
+  background: #fff;
+  border-radius: 24rpx; /* 卡片圆角 */
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.03);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx; /* 二级留白 */
+  /* 分割线：1rpx，左右缩进 32rpx */
+  border-bottom: 1rpx solid #f0f0f0;
+  transition: background 0.15s;
+}
+
+.menu-item:active { background: #f9f9f9; }
+
+/* 最后一项无分割线 */
+.menu-item:last-child {
+  border-bottom: none;
+  /* 最后一项底部圆角 24rpx 已由容器处理 */
+}
+
+.menu-icon { font-size: 36rpx; margin-right: 16rpx; }
+
+.menu-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #1a1a2e;
+}
+
+.menu-badge {
+  background: #FF3B30;
+  color: #fff;
+  font-size: 20rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 16rpx;
+  margin-right: 12rpx;
+}
+
+.menu-vip {
+  background: linear-gradient(135deg, #FF6B9D, #C44FE2);
+  color: #fff;
+  font-size: 18rpx;
+  font-weight: 700;
+  padding: 3rpx 12rpx;
+  border-radius: 8rpx; /* 最小圆角 */
+  margin-right: 12rpx;
+}
+
+.menu-arrow {
+  font-size: 28rpx;
+  color: #ddd;
+}
+
+/* ===== 版本 ===== */
+.version {
+  text-align: center;
+  font-size: 22rpx;
+  color: #ddd;
+  padding: 32rpx 0 16rpx;
+}
