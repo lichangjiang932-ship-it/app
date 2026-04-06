@@ -1,0 +1,17 @@
+# 微信开发者工具
+miniprogram_npm/
+node_modules/
+cloudfunctions/*/node_modules/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 微信开发者工具临时文件
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 项目配置（本地）
+project.private.config.json
