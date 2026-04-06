@@ -65,6 +65,10 @@ Page({
     wx.showToast({ title: newState ? '已收藏' : '已取消收藏', icon: 'none' });
   },
 
+  goBack() {
+    wx.navigateBack({ delta: 1 });
+  },
+
   goCreate() {
     wx.setStorageSync('createParams', { templateId: this.data.templateId });
     wx.switchTab({ url: '/pages/create/create' });

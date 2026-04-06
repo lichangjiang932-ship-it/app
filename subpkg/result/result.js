@@ -103,7 +103,7 @@ Page({
 
   async loadRecommend() {
     try {
-      const res = await wx.cloud.callFunction({ name: 'templates', data: { action: 'recommend', pageSize: 6 } });
+      const res = await wx.cloud.callFunction({ name: 'templates', data: { action: 'recommend', pageSize: 4 } });
       this.setData({ recommendTemplates: res.result?.data || [] });
     } catch (e) {
       this.setData({
@@ -115,6 +115,10 @@ Page({
         ],
       });
     }
+  },
+
+  goBack() {
+    wx.navigateBack({ delta: 1 });
   },
 
   onShareAppMessage() {

@@ -35,11 +35,11 @@ Page({
     this.loadMyWorks();
   },
 
-  // 登录 — 使用新的头像昵称填写组件方式
+  // 登录
   async onLogin() {
     try {
       // 先尝试获取用户信息（兼容旧版）
-      if (wx.getUserProfile) {
+      if (typeof wx.getUserProfile === 'function') {
         try {
           const profile = await new Promise((resolve, reject) => {
             wx.getUserProfile({
@@ -104,12 +104,22 @@ Page({
         data: { action: 'myList', page: 1, pageSize: 20 },
       });
       const raw = res.result?.data || [];
-      const items = raw.length > 0 ? raw.map(item => ({
+      const defaultHeights = [300, 380, 340, 420, 280, 360];
+      let items = raw.map((item, idx) => ({
         ...item,
         timeAgo: timeAgo(item.createdAt),
-        cover: (item.results && item.results[0]) || `/images/demo/template${Math.floor(Math.random() * 12) + 1}.jpg`,
-        imgHeight: [300, 380, 340, 420, 280, 360][Math.floor(Math.random() * 6)],
-      })) : [];
+        cover: (item.results && item.results[0]) || `/images/demo/template${(idx % 12) + 1}.jpg`,
+        imgHeight: defaultHeights[idx % 6],
+      }));
+
+      // 收藏 tab：过滤仅显示已收藏的作品
+      if (this.data.worksTab === 'liked') {
+        try {
+          const favorites = wx.getStorageSync('favorites') || {};
+          items = items.filter(item => favorites[item.templateId] || favorites[item.id]);
+        } catch (_) {}
+      }
+
       this.splitWorks(items);
     } catch (e) {
       this.splitWorks([]);
@@ -124,7 +134,9 @@ Page({
   },
 
   switchWorksTab(e) {
-    this.setData({ worksTab: e.currentTarget.dataset.tab });
+    const tab = e.currentTarget.dataset.tab;
+    if (tab === this.data.worksTab) return;
+    this.setData({ worksTab: tab });
     this.loadMyWorks();
   },
 

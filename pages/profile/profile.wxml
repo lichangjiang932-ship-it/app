@@ -80,7 +80,7 @@
     </view>
 
     <!-- 瀑布流 -->
-    <view wx:if="{{!worksLoading && myWorksLeft.length > 0}}" class="works-waterfall">
+    <view wx:elif="{{myWorksLeft.length > 0}}" class="works-waterfall">
       <view class="works-col">
         <view class="works-card" wx:for="{{myWorksLeft}}" wx:key="id" bindtap="viewResult" data-id="{{item.id}}">
           <image class="works-img" src="{{item.cover}}" mode="aspectFill" lazy-load="{{true}}" style="height: {{item.imgHeight}}rpx;" />
@@ -110,7 +110,7 @@
     </view>
 
     <!-- 空状态 -->
-    <view class="empty-state" wx:if="{{!worksLoading && myWorksLeft.length === 0}}">
+    <view class="empty-state" wx:else>
       <text class="empty-emoji">📭</text>
       <text class="empty-text">还没有作品</text>
       <text class="empty-hint">快去制作你的第一张AI写真吧</text>

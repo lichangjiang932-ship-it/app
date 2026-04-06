@@ -178,7 +178,7 @@ Page({
 
   async loadTemplates() {
     try {
-      const res = await wx.cloud.callFunction({ name: 'templates', data: { action: 'list', category: 'all', page: 1, pageSize: 100 } });
+      const res = await wx.cloud.callFunction({ name: 'templates', data: { action: 'list', category: 'all', page: 1, pageSize: 20 } });
       const tpls = res.result?.data || this.getDefaultTemplates();
       this.setData({ allTemplates: tpls });
       this.splitTemplates(tpls);
@@ -269,7 +269,9 @@ Page({
   pollResult(taskId) {
     let progress = 30;
     let pollCount = 0;
+    let failCount = 0;
     const maxPolls = 60; // 最多轮询3分钟
+    const maxFails = 5; // 连续失败5次则提示
 
     const timer = setInterval(async () => {
       pollCount++;
@@ -290,10 +292,11 @@ Page({
           name: 'tasks',
           data: { action: 'status', taskId },
         });
+        failCount = 0; // 成功则重置
         const task = res.result;
         if (task.status === 'processing') {
           progress = Math.max(progress, task.progress || 0);
-          progress = Math.min(progress + Math.random() * 5, 90);
+          progress = Math.min(progress + 3, 90);
           this.updateGen('AI正在生成中', `已完成 ${Math.round(progress)}%...`, Math.round(progress));
         } else if (task.status === 'completed') {
           clearInterval(timer);
@@ -311,8 +314,18 @@ Page({
           });
         }
       } catch (e) {
-        // 网络异常不中断轮询
-        console.error('轮询失败:', e);
+        failCount++;
+        console.error(`轮询失败 (${failCount}/${maxFails}):`, e);
+        if (failCount >= maxFails) {
+          clearInterval(timer);
+          this.setData({ isGenerating: false });
+          wx.showModal({
+            title: '网络异常',
+            content: '无法获取生成状态，请检查网络后在"我的"查看结果',
+            showCancel: false,
+            success: () => wx.switchTab({ url: '/pages/profile/profile' }),
+          });
+        }
       }
     }, 3000);
   },

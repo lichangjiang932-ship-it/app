@@ -34,6 +34,7 @@ exports.main = async (event, context) => {
   switch (action) {
     case 'list':
       try {
+        const ps = Math.min(pageSize || 10, 20); // 云数据库单次查询上限20条
         let query = db.collection('templates');
         // 云数据库中的筛选
         if (category && category !== 'all') {
@@ -47,8 +48,8 @@ exports.main = async (event, context) => {
         }
         const res = await query
           .orderBy('useCount', 'desc')
-          .skip((page - 1) * (pageSize || 10))
-          .limit(pageSize || 10)
+          .skip((page - 1) * ps)
+          .limit(ps)
           .get();
 
         if (res.data.length > 0) {

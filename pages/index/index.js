@@ -1,6 +1,6 @@
 // pages/index/index.js
 const db = wx.cloud.database();
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 10; // 云数据库上限20，取10合理
 
 // 本地缓存键
 const CACHE_KEY_TEMPLATES = 'cache_templates';
@@ -42,8 +42,6 @@ Page({
     categories: [
       { id: 'hot', name: '热门', emoji: '🔥' },
       { id: 'new', name: '最新', emoji: '✨' },
-      { id: 'female', name: '女生', emoji: '👧' },
-      { id: 'male', name: '男生', emoji: '👦' },
       { id: 'couple', name: '情侣', emoji: '💑' },
       { id: 'art', name: '艺术', emoji: '🎨' },
       { id: 'vintage', name: '复古', emoji: '📼' },
@@ -308,16 +306,19 @@ Page({
     const names = ['韩系证件照', '法式油画写真', '日系清新风', '赛博朋克', '港风复古', '校园青春', '迪士尼公主', '商务精英', '古风汉服', '情侣甜蜜照', '油画肖像', '动漫头像'];
     const styles = ['证件照', '写真', '写真', '艺术', '复古', '写真', '卡通', '证件照', '艺术', '写真', '艺术', '卡通'];
     const heights = [340, 420, 360, 450, 320, 400, 380, 440, 350, 410, 370, 430];
+    const likeCounts = [328, 512, 186, 473, 295, 164, 487, 341, 209, 156, 398, 445];
+    const useCounts = [8920, 12450, 6380, 10200, 7650, 5430, 11800, 4320, 9870, 3210, 7560, 8940];
+    const authorNames = ['小雅', '阿明', '月月', '大壮', '甜甜', '小新', '默默', '乐乐', '清风', '明月', '星辰', '大海'];
     return Array.from({ length: 12 }, (_, i) => ({
       id: `work${i + 1}`,
       name: names[i],
       cover: `/images/demo/template${(i % 12) + 1}.jpg`,
       style: styles[i],
-      authorName: ['小雅', '阿明', '月月', '大壮', '甜甜', '小新', '默默', '乐乐', '清风', '明月', '星辰', '大海'][i],
+      authorName: authorNames[i],
       authorAvatar: '/images/default-avatar.png',
-      likeCount: Math.floor(Math.random() * 500 + 50),
+      likeCount: likeCounts[i],
       liked: false,
-      useCount: Math.floor(Math.random() * 10000 + 1000),
+      useCount: useCounts[i],
       imgHeight: heights[i],
     }));
   },
