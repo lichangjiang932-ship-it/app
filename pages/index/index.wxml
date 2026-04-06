@@ -4,10 +4,6 @@
   <nav-bar title="妙鸭" title-gradient="{{true}}" fixed="{{true}}" placeholder="{{true}}" bgColor="rgba(255,255,255,0.92)">
     <view slot="right" class="nav-actions">
       <view class="nav-btn hover-opacity" bindtap="onSearch"><text>🔍</text></view>
-      <view class="nav-btn hover-opacity" bindtap="onMessage">
-        <text>🔔</text>
-        <view class="nav-badge" wx:if="{{msgCount > 0}}">{{msgCount > 99 ? '99+' : msgCount}}</view>
-      </view>
       <view class="nav-avatar-wrap hover-opacity" bindtap="goProfile">
         <image src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" class="nav-avatar" />
       </view>

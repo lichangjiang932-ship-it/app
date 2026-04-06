@@ -23,23 +23,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
   font-size: 34rpx;
-}
-
-.nav-badge {
-  position: absolute;
-  top: 2rpx;
-  right: 0;
-  min-width: 28rpx;
-  height: 28rpx;
-  line-height: 28rpx;
-  text-align: center;
-  font-size: 18rpx;
-  color: #fff;
-  background: #FF3B30;
-  border-radius: 16rpx;
-  padding: 0 6rpx;
 }
 
 .nav-avatar-wrap {

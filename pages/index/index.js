@@ -10,7 +10,6 @@ Page({
   data: {
     // 用户
     userInfo: null,
-    msgCount: 3,
 
     // 骨架屏
     loading: true,
@@ -231,6 +230,15 @@ Page({
   onToolTap(e) {
     wx.vibrateShort && wx.vibrateShort({ type: 'light' });
     const item = e.currentTarget.dataset.item;
+    if (item.id === 'restore') {
+      wx.showModal({
+        title: '🔧 照片修复',
+        content: '老照片修复、画质增强功能即将上线，敬请期待！',
+        showCancel: false,
+        confirmText: '好的',
+      });
+      return;
+    }
     wx.setStorageSync('createParams', { type: item.id });
     wx.switchTab({ url: '/pages/create/create' });
   },
@@ -287,7 +295,6 @@ Page({
   },
 
   onSearch() { wx.showToast({ title: '搜索功能开发中', icon: 'none' }); },
-  onMessage() { wx.showToast({ title: '消息中心开发中', icon: 'none' }); },
   goProfile() { wx.switchTab({ url: '/pages/profile/profile' }); },
 
   // ===== 默认数据 =====
