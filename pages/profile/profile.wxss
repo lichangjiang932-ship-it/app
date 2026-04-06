@@ -194,34 +194,34 @@
 /* ===== 8.2 我的作品瀑布流 ===== */
 .works-skeleton {
   display: flex;
-  gap: 14rpx;
+  gap: 16rpx;
 }
 
 .ws-col {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14rpx;
+  gap: 16rpx;
 }
 
-.ws-card { border-radius: 20rpx; }
+.ws-card { border-radius: 24rpx; }
 
 .works-waterfall {
   display: flex;
-  gap: 14rpx; /* 三级留白近似 */
+  gap: 16rpx; /* 三级留白 */
 }
 
 .works-col {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14rpx;
+  gap: 16rpx;
 }
 
-/* 卡片圆角 20rpx（中卡片） */
+/* 卡片圆角 24rpx */
 .works-card {
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.05);
   position: relative;

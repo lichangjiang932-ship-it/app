@@ -33,7 +33,7 @@
 .ex-item {
   display: inline-block;
   width: 240rpx; height: 320rpx;
-  margin-right: 14rpx;
+  margin-right: 16rpx;
   border-radius: 24rpx; /* 中圆角 */
   overflow: hidden;
   box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.08);

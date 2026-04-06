@@ -184,7 +184,7 @@
   background: #fff;
   border-radius: 24rpx; /* 中圆角 — 卡片 */
   padding: 24rpx; /* 二级留白 */
-  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04);
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.04); /* 卡片静止阴影 */
 }
 
 .tool-card {

@@ -155,4 +155,119 @@ page {
 /* ===== 暗黑模式 ===== */
 @media (prefers-color-scheme: dark) {
   page { background: #1a1a2e; }
+
+  /* 卡片 */
+  .page .waterfall-card,
+  .page .hot-card,
+  .page .tools-grid,
+  .page .tips-card,
+  .page .works-card,
+  .page .menu-group,
+  .page .notice-card,
+  .page .reco-card,
+  .page .act-btn,
+  .page .retry-btn,
+  .page .empty-state {
+    background: #252547;
+    box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.2);
+  }
+
+  /* 文字 */
+  .page .section-title,
+  .page .wf-title,
+  .page .hot-name,
+  .page .tool-name,
+  .page .works-name,
+  .page .menu-text,
+  .page .notice-title,
+  .page .ex-title,
+  .page .reco-title,
+  .page .empty-text,
+  .page .gen-title,
+  .page .info-name,
+  .page .hero-title,
+  .page .tips-title {
+    color: #e8e8f0;
+  }
+
+  /* 次要文字 */
+  .page .section-more,
+  .page .hot-count,
+  .page .author-name,
+  .page .works-time,
+  .page .load-text,
+  .page .tool-desc,
+  .page .info-desc,
+  .page .info-stats,
+  .page .gen-desc,
+  .page .gen-tip,
+  .page .hero-desc,
+  .page .empty-hint,
+  .page .price-label,
+  .page .stat-label {
+    color: #8888aa;
+  }
+
+  /* 弱文字 */
+  .page .step-text,
+  .page .cat-item,
+  .page .like-count,
+  .page .tip,
+  .page .menu-arrow,
+  .page .more-arrow,
+  .page .version {
+    color: #666688;
+  }
+
+  /* 分割线 */
+  .page .menu-item {
+    border-bottom-color: #333355;
+  }
+
+  /* 导航栏 */
+  .page nav-bar,
+  .nav-bar {
+    background: rgba(26,26,46,0.92) !important;
+  }
+
+  /* 底部栏 */
+  .page .bottom-bar {
+    background: rgba(26,26,46,0.95);
+    box-shadow: 0 -4rpx 24rpx rgba(0,0,0,0.2);
+  }
+
+  /* 分类吸顶栏 */
+  .page .category-bar {
+    background: #1a1a2e;
+  }
+
+  .page .category-bar.sticky {
+    background: rgba(26,26,46,0.96);
+  }
+
+  /* 次要按钮 */
+  .page .btn-secondary,
+  .page .bottom-btn-sm {
+    background: #2a2a4a;
+    border-color: #3a3a5a;
+    color: #aaa;
+  }
+
+  /* 输入框/占位 */
+  .page .front-card,
+  .page .photo-cell.add {
+    background: #252547;
+    border-color: #3a3a5a;
+  }
+
+  .page .front-hint,
+  .page .add-icon {
+    color: #666688;
+  }
+
+  /* 骨架屏 */
+  .page .skeleton {
+    background: linear-gradient(90deg, #2a2a4a 25%, #333355 37%, #2a2a4a 63%);
+    background-size: 200% 100%;
+  }
 }
