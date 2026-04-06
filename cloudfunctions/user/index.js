@@ -2,6 +2,7 @@
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
@@ -26,21 +27,40 @@ exports.main = async (event, context) => {
         }
         return { success: true };
       } catch (e) {
+        console.error('更新用户资料失败:', e.message);
         return { success: false, error: e.message };
       }
 
     case 'stats':
       try {
         const tasksCol = db.collection('tasks');
-        const historyCount = await tasksCol.where({ _openid: OPENID, status: 'completed' }).count();
-        const photoCount = await tasksCol.where({ _openid: OPENID }).count();
+        const myTasks = tasksCol.where({ _openid: OPENID });
+
+        const [completedRes, totalRes] = await Promise.all([
+          myTasks.where({ status: 'completed' }).count(),
+          myTasks.count(),
+        ]);
+
+        // 统计实际生成的图片总数（遍历 completed 任务的 results 数组长度）
+        let photoCount = 0;
+        try {
+          const completedTasks = await myTasks.where({ status: 'completed' }).field({ results: true }).get();
+          photoCount = completedTasks.data.reduce((sum, t) => sum + (t.results ? t.results.length : 0), 0);
+        } catch (_) {
+          // 降级：使用任务数 × 4 估算
+          photoCount = completedRes.total * 4;
+        }
+
         return {
-          historyCount: historyCount.total,
-          photoCount: photoCount.total * 4, // 每次生成4张
-          favoriteCount: 0,
+          works: completedRes.total,
+          favorites: 0,
+          likes: 0,
+          following: 0,
+          historyCount: completedRes.total,
+          photoCount,
         };
       } catch (e) {
-        return { historyCount: 0, photoCount: 0, favoriteCount: 0 };
+        return { works: 0, favorites: 0, likes: 0, following: 0, historyCount: 0, photoCount: 0 };
       }
 
     default:

@@ -1,5 +1,6 @@
 // pages/profile/profile.js
 const app = getApp();
+const { timeAgo } = require('../../utils/util.js');
 
 Page({
   data: {
@@ -34,24 +35,63 @@ Page({
     this.loadMyWorks();
   },
 
-  // 登录
+  // 登录 — 使用新的头像昵称填写组件方式
   async onLogin() {
     try {
-      const profile = await wx.getUserProfile({ desc: '用于完善用户资料' });
-      const userInfo = profile.userInfo;
+      // 先尝试获取用户信息（兼容旧版）
+      if (wx.getUserProfile) {
+        try {
+          const profile = await new Promise((resolve, reject) => {
+            wx.getUserProfile({
+              desc: '用于完善用户资料',
+              success: resolve,
+              fail: reject,
+            });
+          });
+          const userInfo = profile.userInfo;
+          app.globalData.userInfo = userInfo;
+          this.setData({ userInfo });
+          await wx.cloud.callFunction({ name: 'user', data: { action: 'updateProfile', userInfo } });
+          return;
+        } catch (_) {
+          // getUserProfile 被拒绝或不可用，降级处理
+        }
+      }
+      // 降级：提示用户使用头像昵称填写组件
+      wx.showToast({ title: '请点击头像完善资料', icon: 'none' });
+    } catch (e) {
+      console.error('登录失败:', e);
+    }
+  },
+
+  // 从头像昵称组件获取信息（配合 wxml 中的 button open-type）
+  onChooseAvatar(e) {
+    const avatarUrl = e.detail.avatarUrl;
+    if (avatarUrl) {
+      const userInfo = { ...this.data.userInfo, avatarUrl };
       app.globalData.userInfo = userInfo;
       this.setData({ userInfo });
-      await wx.cloud.callFunction({ name: 'user', data: { action: 'updateProfile', userInfo } });
-    } catch (e) {}
+      wx.cloud.callFunction({ name: 'user', data: { action: 'updateProfile', userInfo } }).catch(() => {});
+    }
   },
 
   // 加载统计
   async loadStats() {
     try {
       const res = await wx.cloud.callFunction({ name: 'user', data: { action: 'stats' } });
-      if (res.result) this.setData({ stats: res.result });
+      if (res.result && !res.result.error) {
+        this.setData({
+          stats: {
+            works: res.result.works || 0,
+            favorites: res.result.favorites || 0,
+            likes: res.result.likes || 0,
+            following: res.result.following || 0,
+          },
+        });
+      }
     } catch (e) {
-      this.setData({ stats: { works: 8, favorites: 12, likes: 156, following: 5 } });
+      // 网络异常显示零值，不显示假数据
+      this.setData({ stats: { works: 0, favorites: 0, likes: 0, following: 0 } });
     }
   },
 
@@ -63,19 +103,16 @@ Page({
         name: 'tasks',
         data: { action: 'myList', page: 1, pageSize: 20 },
       });
-      const items = (res.result?.data || this.getDefaultWorks()).map(item => ({
+      const raw = res.result?.data || [];
+      const items = raw.length > 0 ? raw.map(item => ({
         ...item,
-        timeAgo: this.timeAgo(item.createdAt || Date.now()),
-        cover: (item.results && item.results[0]) || `/images/demo/template${Math.floor(Math.random()*12)+1}.jpg`,
+        timeAgo: timeAgo(item.createdAt),
+        cover: (item.results && item.results[0]) || `/images/demo/template${Math.floor(Math.random() * 12) + 1}.jpg`,
         imgHeight: [300, 380, 340, 420, 280, 360][Math.floor(Math.random() * 6)],
-      }));
+      })) : [];
       this.splitWorks(items);
     } catch (e) {
-      const items = this.getDefaultWorks().map(item => ({
-        ...item,
-        imgHeight: [300, 380, 340, 420, 280, 360][Math.floor(Math.random() * 6)],
-      }));
-      this.splitWorks(items);
+      this.splitWorks([]);
     }
     this.setData({ worksLoading: false });
   },
@@ -86,20 +123,8 @@ Page({
     this.setData({ myWorksLeft: left, myWorksRight: right });
   },
 
-  getDefaultWorks() {
-    return [
-      { id: '1', templateName: '法式油画写真', status: 'completed', timeAgo: '2小时前', cover: '/images/demo/template2.jpg' },
-      { id: '2', templateName: '韩系证件照', status: 'completed', timeAgo: '1天前', cover: '/images/demo/template1.jpg' },
-      { id: '3', templateName: '赛博朋克风', status: 'processing', timeAgo: '生成中', cover: '/images/demo/template4.jpg' },
-      { id: '4', templateName: '古风汉服', status: 'completed', timeAgo: '3天前', cover: '/images/demo/template9.jpg' },
-      { id: '5', templateName: '迪士尼公主', status: 'completed', timeAgo: '5天前', cover: '/images/demo/template7.jpg' },
-      { id: '6', templateName: '港风复古', status: 'completed', timeAgo: '1周前', cover: '/images/demo/template5.jpg' },
-    ];
-  },
-
   switchWorksTab(e) {
     this.setData({ worksTab: e.currentTarget.dataset.tab });
-    // 实际应该重新请求过滤数据
     this.loadMyWorks();
   },
 
@@ -112,9 +137,7 @@ Page({
     wx.switchTab({ url: '/pages/create/create' });
   },
 
-  seeMyWorks() {
-    // 滚动到作品区或查看全部
-  },
+  seeMyWorks() {},
 
   goVip() {
     wx.showModal({ title: 'VIP会员', content: '无限生成 · 高清导出 · 专属模板', confirmText: '立即开通', cancelText: '稍后', success: (r) => { if (r.confirm) wx.showToast({ title: '支付功能开发中', icon: 'none' }); } });
@@ -132,22 +155,9 @@ Page({
       vip: () => this.goVip(),
       invite: () => wx.showToast({ title: '邀请功能开发中', icon: 'none' }),
       feedback: () => wx.makePhoneCall({ phoneNumber: '4000000000', fail: () => {} }),
-      help: () => wx.showModal({ title: '帮助', content: '常见问题请访问 help.miaoya.cn', showCancel: false }),
+      help: () => wx.showModal({ title: '帮助', content: '常见问题请访问帮助中心', showCancel: false }),
       settings: () => this.goSettings(),
     };
     (actions[type] || (() => {}))();
-  },
-
-  timeAgo(ts) {
-    if (!ts) return '';
-    const diff = Date.now() - ts;
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return '刚刚';
-    if (mins < 60) return `${mins}分钟前`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}小时前`;
-    const days = Math.floor(hrs / 24);
-    if (days < 30) return `${days}天前`;
-    return `${Math.floor(days / 30)}个月前`;
   },
 });

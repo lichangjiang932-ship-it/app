@@ -1,10 +1,8 @@
-// cloudfunctions/templates/index.js
-const cloud = require('wx-server-sdk');
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
-const db = cloud.database();
-const _ = db.command;
+/**
+ * 公共默认数据 — 单一数据源
+ * 前端页面和云函数共用，避免重复定义
+ */
 
-// 默认模板数据（与 utils/defaults.js 保持一致）
 const defaultTemplates = [
   { id: '1', name: '韩系证件照', cover: '/images/demo/template1.jpg', style: '证件照', category: 'idphoto', useCount: 128000, likeCount: 52000, isNew: false, isHot: true, price: 0, description: '清新自然的韩式证件照，适用于简历、签证等各种场景' },
   { id: '2', name: '法式油画', cover: '/images/demo/template2.jpg', style: '写真', category: 'photo', useCount: 96000, likeCount: 45000, isNew: true, isHot: true, price: 0, description: '文艺复兴风格的油画质感写真，优雅而永恒' },
@@ -20,66 +18,15 @@ const defaultTemplates = [
   { id: '12', name: '动漫头像', cover: '/images/demo/template12.jpg', style: '卡通', category: 'cartoon', useCount: 76000, likeCount: 35000, isNew: false, isHot: true, price: 0, description: '二次元动漫风格头像生成' },
 ];
 
-// 按分类筛选
-function filterByCategory(templates, category) {
+// 按分类筛选模板
+function filterTemplates(templates, category) {
   if (!category || category === 'all') return templates;
   if (category === 'hot') return templates.filter(t => t.isHot);
   if (category === 'new') return templates.filter(t => t.isNew);
   return templates.filter(t => t.category === category);
 }
 
-exports.main = async (event, context) => {
-  const { action, category, page, pageSize, id } = event;
-
-  switch (action) {
-    case 'list':
-      try {
-        let query = db.collection('templates');
-        // 云数据库中的筛选
-        if (category && category !== 'all') {
-          if (category === 'hot') {
-            query = query.where({ isHot: true });
-          } else if (category === 'new') {
-            query = query.where({ isNew: true });
-          } else {
-            query = query.where({ category });
-          }
-        }
-        const res = await query
-          .orderBy('useCount', 'desc')
-          .skip((page - 1) * (pageSize || 10))
-          .limit(pageSize || 10)
-          .get();
-
-        if (res.data.length > 0) {
-          return { data: res.data };
-        }
-        // 数据库为空时使用默认数据
-        return { data: filterByCategory(defaultTemplates, category) };
-      } catch (e) {
-        return { data: filterByCategory(defaultTemplates, category) };
-      }
-
-    case 'detail':
-      try {
-        const res = await db.collection('templates').doc(id).get();
-        return res.data;
-      } catch (e) {
-        return defaultTemplates.find(t => t.id === id) || defaultTemplates[0];
-      }
-
-    case 'recommend':
-      try {
-        const res = await db.collection('templates')
-          .orderBy('useCount', 'desc')
-          .limit(pageSize || 6)
-          .get();
-        return { data: res.data.length > 0 ? res.data : defaultTemplates.slice(0, 6) };
-      } catch (e) {
-        return { data: defaultTemplates.slice(0, 6) };
-      }
-
-    default:
-      return { error: 'Unknown action' };
-  }
+module.exports = {
+  defaultTemplates,
+  filterTemplates,
 };

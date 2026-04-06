@@ -7,6 +7,7 @@ Page({
     task: null,
     currentThumb: 0,
     recommendTemplates: [],
+    saving: false,
   },
 
   onLoad(options) {
@@ -22,15 +23,14 @@ Page({
   async loadResult(taskId) {
     try {
       const res = await wx.cloud.callFunction({ name: 'tasks', data: { action: 'detail', taskId } });
-      if (res.result) this.setData({ task: res.result });
+      if (res.result) {
+        this.setData({ task: res.result });
+      } else {
+        this.setData({ task: null });
+      }
     } catch (e) {
-      this.setData({
-        task: {
-          id: taskId, templateName: 'AI写真',
-          results: ['/images/demo/result1.jpg','/images/demo/result2.jpg','/images/demo/result3.jpg','images/demo/result4.jpg'],
-          createdAt: Date.now(),
-        },
-      });
+      console.error('加载结果失败:', e);
+      this.setData({ task: null });
     }
   },
 
@@ -43,31 +43,47 @@ Page({
   },
 
   async saveToAlbum() {
-    if (!this.data.task) return;
+    if (!this.data.task || this.data.saving) return;
     const url = this.data.task.results[this.data.currentThumb];
+    this.setData({ saving: true });
     wx.showLoading({ title: '保存中...' });
     try {
       const res = await wx.cloud.downloadFile({ fileID: url });
       await wx.saveImageToPhotosAlbum({ filePath: res.tempFilePath });
       wx.hideLoading();
-      wx.showToast({ title: '已保存', icon: 'success' });
+      wx.showToast({ title: '已保存到相册', icon: 'success' });
     } catch (e) {
       wx.hideLoading();
-      wx.showToast({ title: '保存失败', icon: 'none' });
+      // 可能是权限问题
+      if (e.errMsg && e.errMsg.includes('auth deny')) {
+        wx.showModal({
+          title: '需要相册权限',
+          content: '请在设置中允许访问相册',
+          confirmText: '去设置',
+          success: (r) => { if (r.confirm) wx.openSetting(); },
+        });
+      } else {
+        wx.showToast({ title: '保存失败', icon: 'none' });
+      }
     }
+    this.setData({ saving: false });
   },
 
   async saveAll() {
-    if (!this.data.task) return;
+    if (!this.data.task || this.data.saving) return;
+    this.setData({ saving: true });
     wx.showLoading({ title: '保存中...' });
+    let successCount = 0;
     for (const url of this.data.task.results) {
       try {
         const res = await wx.cloud.downloadFile({ fileID: url });
         await wx.saveImageToPhotosAlbum({ filePath: res.tempFilePath });
+        successCount++;
       } catch (e) {}
     }
     wx.hideLoading();
-    wx.showToast({ title: '全部保存成功', icon: 'success' });
+    wx.showToast({ title: `已保存${successCount}张`, icon: successCount > 0 ? 'success' : 'none' });
+    this.setData({ saving: false });
   },
 
   retryWithSame() {

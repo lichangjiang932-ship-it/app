@@ -1,20 +1,12 @@
 // cloudfunctions/jimeng/index.js
 /**
  * 即梦AI生图云函数
- * 
- * ========================================
- * ⚠️  重要：使用前请配置以下内容
- * ========================================
- * 
- * 1. 在云开发控制台设置环境变量：
- *    - JIMENG_API_KEY: 你的即梦API Key
- *    - JIMENG_API_SECRET: 你的即梦API Secret（如有）
- *    - JIMENG_API_URL: 即梦API的基础URL
- * 
- * 2. 或直接修改下方 config 对象
- * 
- * 3. 即梦API文档：https://jimeng.jianying.com/ （请参考官方文档完善接口调用）
- * ========================================
+ *
+ * 配置方式：
+ * 在云开发控制台 → 设置 → 环境变量中添加：
+ *   JIMENG_API_KEY / JIMENG_API_SECRET / JIMENG_API_URL
+ *
+ * 即梦API文档：https://jimeng.jianying.com/
  */
 
 const cloud = require('wx-server-sdk');
@@ -24,23 +16,23 @@ const FormData = require('form-data');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
-// ========== 配置区域 ==========
+// ========== 配置 ==========
 const config = {
-  // 即梦API配置 - 请替换为你的实际配置
-  apiKey: process.env.JIMENG_API_KEY || 'YOUR_JIMENG_API_KEY',
+  apiKey: process.env.JIMENG_API_KEY,
   apiSecret: process.env.JIMENG_API_SECRET || '',
   apiUrl: process.env.JIMENG_API_URL || 'https://jimeng.jianying.com/api',
-
-  // 模型配置
-  defaultModel: 'jimeng-v2', // 即梦模型版本
-  maxRetries: 3,
-  retryDelay: 5000, // ms
-
-  // 图片配置
+  defaultModel: 'jimeng-v2',
   outputWidth: 1024,
   outputHeight: 1024,
   outputQuality: 95,
 };
+
+// 检查配置
+function assertConfig() {
+  if (!config.apiKey) {
+    throw new Error('即梦API Key未配置，请在云开发控制台设置环境变量 JIMENG_API_KEY');
+  }
+}
 
 // ========== 即梦API客户端 ==========
 class JimengAPI {
@@ -52,11 +44,9 @@ class JimengAPI {
 
   /**
    * 获取API访问Token
-   * 即梦可能使用OAuth或API Key鉴权，请根据实际API文档调整
+   * TODO: 根据即梦实际鉴权方式实现
    */
   async getAccessToken() {
-    // TODO: 根据即梦实际鉴权方式实现
-    // 示例：使用API Key作为Bearer Token
     return this.apiKey;
   }
 
@@ -67,52 +57,42 @@ class JimengAPI {
    */
   async uploadImage(fileID) {
     try {
-      // 从云存储下载文件
-      const fileRes = await cloud.downloadFile({ fileID: fileID });
+      const fileRes = await cloud.downloadFile({ fileID });
       const buffer = fileRes.fileContent;
-
-      // 获取临时访问URL
       const urlRes = await cloud.getTempFileURL({ fileList: [fileID] });
       const tempUrl = urlRes.fileList[0].tempFileURL;
 
       // TODO: 根据即梦API文档上传图片
-      // 示例实现（需根据实际API调整）：
       /*
       const token = await this.getAccessToken();
       const form = new FormData();
       form.append('image', buffer, { filename: 'photo.jpg' });
-
       const res = await axios.post(`${this.apiUrl}/upload`, form, {
         headers: {
           'Authorization': `Bearer ${token}`,
           ...form.getHeaders(),
         },
+        timeout: 30000,
       });
       return res.data.image_id;
       */
 
-      // 临时方案：直接返回临时URL
       return tempUrl;
     } catch (e) {
-      console.error('上传图片失败:', e);
-      throw e;
+      console.error('上传图片失败:', fileID, e.message);
+      throw new Error(`图片上传失败: ${e.message}`);
     }
   }
 
   /**
    * 创建生图任务
-   * @param {Object} params - 生成参数
-   * @param {string[]} params.imageUrls - 参考图片URL数组
-   * @param {string} params.templatePrompt - 模板对应的提示词
-   * @param {string} params.templateId - 模板ID
-   * @returns {Object} 任务信息
+   * TODO: 根据即梦API文档实现
    */
   async createTask({ imageUrls, templatePrompt, templateId }) {
     try {
       const token = await this.getAccessToken();
 
-      // TODO: 根据即梦API文档创建生图任务
-      // 以下是示例结构，请根据实际API调整
+      // TODO: 替换为真实API调用
       /*
       const res = await axios.post(`${this.apiUrl}/tasks`, {
         model: this.model,
@@ -128,47 +108,45 @@ class JimengAPI {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        timeout: 30000,
       });
-      return {
-        taskId: res.data.task_id,
-        status: res.data.status,
-      };
+      return { taskId: res.data.task_id, status: res.data.status };
       */
 
-      // 模拟返回（删除此段，使用上面的真实API调用）
-      console.log('即梦API - 创建任务:', { imageUrls: imageUrls.length, templatePrompt, templateId });
+      // 模拟返回 — 接入真实API后删除
+      console.log('即梦API - 创建任务:', { imageCount: imageUrls.length, templatePrompt, templateId });
       return {
         taskId: `jimeng_${Date.now()}`,
         status: 'submitted',
       };
     } catch (e) {
-      console.error('创建生图任务失败:', e);
-      throw e;
+      console.error('创建生图任务失败:', e.message);
+      throw new Error(`创建任务失败: ${e.message}`);
     }
   }
 
   /**
    * 查询任务状态
-   * @param {string} jimengTaskId - 即梦任务ID
-   * @returns {Object} 任务状态和结果
+   * TODO: 根据即梦API文档实现
    */
   async queryTask(jimengTaskId) {
     try {
       const token = await this.getAccessToken();
 
-      // TODO: 根据即梦API文档查询任务
+      // TODO: 替换为真实API调用
       /*
       const res = await axios.get(`${this.apiUrl}/tasks/${jimengTaskId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
+        timeout: 15000,
       });
       return {
-        status: res.data.status, // 'processing' | 'completed' | 'failed'
-        results: res.data.images || [], // 生成的图片URL数组
+        status: res.data.status,
+        results: res.data.images || [],
         progress: res.data.progress || 0,
       };
       */
 
-      // 模拟返回
+      // 模拟返回 — 接入真实API后删除
       console.log('即梦API - 查询任务:', jimengTaskId);
       return {
         status: 'completed',
@@ -181,8 +159,8 @@ class JimengAPI {
         progress: 100,
       };
     } catch (e) {
-      console.error('查询任务状态失败:', e);
-      throw e;
+      console.error('查询任务状态失败:', e.message);
+      throw new Error(`查询任务失败: ${e.message}`);
     }
   }
 }
@@ -206,19 +184,20 @@ const templatePrompts = {
 // ========== 主函数 ==========
 exports.main = async (event, context) => {
   const { action } = event;
-  const api = new JimengAPI(config);
 
   switch (action) {
-    case 'generate':
+    case 'generate': {
+      assertConfig();
+      const api = new JimengAPI(config);
       return await handleGenerate(api, event);
-
-    case 'queryStatus':
+    }
+    case 'queryStatus': {
+      assertConfig();
+      const api = new JimengAPI(config);
       return await handleQueryStatus(api, event);
-
+    }
     case 'callback':
-      // 即梦回调接口（如果即梦支持webhook）
       return await handleCallback(event);
-
     default:
       return { error: 'Unknown action' };
   }
@@ -228,14 +207,16 @@ exports.main = async (event, context) => {
 async function handleGenerate(api, event) {
   const { taskId, photos, templateId } = event;
 
+  if (!taskId || !photos || !photos.length || !templateId) {
+    return { success: false, error: '参数不完整：需要 taskId, photos, templateId' };
+  }
+
   try {
-    // 1. 更新任务状态为处理中
     await updateTaskStatus(taskId, 'processing', [], 10);
 
-    // 2. 获取模板提示词
     const prompt = templatePrompts[templateId] || templatePrompts['2'];
 
-    // 3. 上传所有参考图片到即梦
+    // 上传参考图片
     await updateTaskStatus(taskId, 'processing', [], 20);
     const imageUrls = [];
     for (const photo of photos) {
@@ -243,7 +224,7 @@ async function handleGenerate(api, event) {
         const url = await api.uploadImage(photo);
         imageUrls.push(url);
       } catch (e) {
-        console.error(`上传图片失败: ${photo}`, e);
+        console.error(`上传图片失败: ${photo}`, e.message);
       }
     }
 
@@ -251,7 +232,7 @@ async function handleGenerate(api, event) {
       throw new Error('所有图片上传失败');
     }
 
-    // 4. 调用即梦API创建任务
+    // 创建生图任务
     await updateTaskStatus(taskId, 'processing', [], 40);
     const result = await api.createTask({
       imageUrls,
@@ -259,22 +240,31 @@ async function handleGenerate(api, event) {
       templateId,
     });
 
-    // 5. 轮询等待结果（异步处理）
-    await pollAndComplete(api, taskId, result.taskId);
+    // 立即返回，前端轮询查询状态
+    // 同时保存 jimengTaskId 供后续查询
+    await db.collection('tasks').doc(taskId).update({
+      data: {
+        jimengTaskId: result.taskId,
+        updatedAt: db.serverDate(),
+      },
+    });
 
-    return { success: true, taskId: result.taskId };
+    // 启动轻量轮询（云函数内最多轮询几次，避免超时）
+    await pollWithLimit(api, taskId, result.taskId, 0, 3);
+
+    return { success: true, jimengTaskId: result.taskId };
   } catch (e) {
-    console.error('生成任务失败:', e);
+    console.error('生成任务失败:', e.message);
     await updateTaskStatus(taskId, 'failed', [], 0, e.message);
     return { success: false, error: e.message };
   }
 }
 
-// 轮询等待即梦任务完成
-async function pollAndComplete(api, localTaskId, jimengTaskId, retries = 0) {
-  if (retries >= config.maxRetries * 20) {
-    // 超过最大重试次数（约10分钟）
-    await updateTaskStatus(localTaskId, 'failed', [], 0, '生成超时，请重试');
+// 轻量轮询 — 云函数内最多轮几次，剩余交给前端 or 定时触发器
+async function pollWithLimit(api, localTaskId, jimengTaskId, retries, maxPolls) {
+  if (retries >= maxPolls) {
+    // 超过云函数内轮询次数，状态保持 processing，由前端继续轮询
+    console.log(`云函数内轮询已达上限(${maxPolls})，交给前端继续查询`);
     return;
   }
 
@@ -282,24 +272,19 @@ async function pollAndComplete(api, localTaskId, jimengTaskId, retries = 0) {
     const result = await api.queryTask(jimengTaskId);
 
     if (result.status === 'completed') {
-      // 将生成结果保存到云存储
       const cloudUrls = await saveResultsToCloud(result.results, localTaskId);
       await updateTaskStatus(localTaskId, 'completed', cloudUrls, 100);
     } else if (result.status === 'failed') {
       await updateTaskStatus(localTaskId, 'failed', [], 0, 'AI生成失败');
     } else {
-      // 继续等待
-      const progress = Math.min(40 + retries * 2, 95);
+      const progress = Math.min(40 + (retries + 1) * 15, 90);
       await updateTaskStatus(localTaskId, 'processing', [], progress);
-
-      // 延迟后重试
-      await sleep(config.retryDelay);
-      await pollAndComplete(api, localTaskId, jimengTaskId, retries + 1);
+      await sleep(5000);
+      await pollWithLimit(api, localTaskId, jimengTaskId, retries + 1, maxPolls);
     }
   } catch (e) {
-    console.error('查询任务失败，重试中...', e);
-    await sleep(config.retryDelay);
-    await pollAndComplete(api, localTaskId, jimengTaskId, retries + 1);
+    console.error('查询任务失败:', e.message);
+    // 不再无限重试，交给前端
   }
 }
 
@@ -309,9 +294,7 @@ async function saveResultsToCloud(imageUrls, taskId) {
   for (let i = 0; i < imageUrls.length; i++) {
     try {
       const cloudPath = `results/${taskId}_${i}.jpg`;
-      const res = await cloud.downloadFile({
-        fileID: imageUrls[i], // 如果是云文件ID
-      }).catch(() => null);
+      const res = await cloud.downloadFile({ fileID: imageUrls[i] }).catch(() => null);
 
       if (res && res.fileContent) {
         const uploadRes = await cloud.uploadFile({
@@ -320,12 +303,12 @@ async function saveResultsToCloud(imageUrls, taskId) {
         });
         cloudUrls.push(uploadRes.fileID);
       } else {
-        // 如果是外部URL，暂时直接使用
+        // 外部URL，直接使用
         cloudUrls.push(imageUrls[i]);
       }
     } catch (e) {
-      console.error(`保存图片失败:`, e);
-      cloudUrls.push(imageUrls[i]); // 降级使用原始URL
+      console.error('保存图片失败:', e.message);
+      cloudUrls.push(imageUrls[i]);
     }
   }
   return cloudUrls;
@@ -344,26 +327,26 @@ async function updateTaskStatus(taskId, status, results, progress, errorMsg) {
       },
     });
   } catch (e) {
-    console.error('更新任务状态失败:', e);
+    console.error('更新任务状态失败:', e.message);
   }
 }
 
 // 处理查询状态
 async function handleQueryStatus(api, event) {
   const { jimengTaskId } = event;
+  if (!jimengTaskId) return { error: '缺少 jimengTaskId' };
   return await api.queryTask(jimengTaskId);
 }
 
 // 处理回调
 async function handleCallback(event) {
-  // TODO: 如果即梦支持webhook回调，在这里处理
   const { taskId, status, results } = event;
+  if (!taskId) return { error: '缺少 taskId' };
   const cloudUrls = results ? await saveResultsToCloud(results, taskId) : [];
   await updateTaskStatus(taskId, status, cloudUrls, status === 'completed' ? 100 : 0);
   return { success: true };
 }
 
-// 工具函数
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }

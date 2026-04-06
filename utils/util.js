@@ -8,6 +8,7 @@
 function formatTime(timestamp) {
   if (!timestamp) return '';
   const date = new Date(timestamp);
+  if (isNaN(date.getTime())) return '';
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -17,11 +18,20 @@ function formatTime(timestamp) {
 }
 
 /**
- * 相对时间
+ * 相对时间 — 兼容时间戳、ISO字符串、云数据库Date对象
  */
-function timeAgo(timestamp) {
-  if (!timestamp) return '';
-  const diff = Date.now() - timestamp;
+function timeAgo(ts) {
+  if (!ts) return '';
+  let diff;
+  if (typeof ts === 'object' && ts.$date) {
+    // 云数据库 BSON Date: { $date: "2024-01-01T00:00:00.000Z" }
+    diff = Date.now() - new Date(ts.$date).getTime();
+  } else if (typeof ts === 'string') {
+    diff = Date.now() - new Date(ts).getTime();
+  } else {
+    diff = Date.now() - ts;
+  }
+  if (isNaN(diff) || diff < 0) return '';
   const minutes = Math.floor(diff / 60000);
   if (minutes < 1) return '刚刚';
   if (minutes < 60) return `${minutes}分钟前`;
@@ -30,14 +40,15 @@ function timeAgo(timestamp) {
   const days = Math.floor(hours / 24);
   if (days < 30) return `${days}天前`;
   const months = Math.floor(days / 30);
-  return `${months}个月前`;
+  if (months < 12) return `${months}个月前`;
+  return `${Math.floor(months / 12)}年前`;
 }
 
 /**
  * 格式化数字（万级）
  */
 function formatNumber(num) {
-  if (!num) return '0';
+  if (!num && num !== 0) return '0';
   if (num >= 10000) {
     return (num / 10000).toFixed(1) + '万';
   }

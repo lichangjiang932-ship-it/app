@@ -1,43 +1,34 @@
 /**
  * 即梦API配置
- * 
- * 使用说明：
- * 1. 将你的即梦API密钥填入下方
- * 2. 或在云开发控制台设置环境变量
- * 3. 推荐使用环境变量方式，避免密钥泄露
- * 
- * 即梦API获取方式：
- * - 访问 https://jimeng.jianying.com/
- * - 注册/登录后在开发者中心获取API Key
- * - 参考官方文档了解接口详情
+ *
+ * 使用方式（推荐）：
+ * 在云开发控制台 → 设置 → 环境变量中配置：
+ *   - JIMENG_API_KEY
+ *   - JIMENG_API_SECRET（如有）
+ *   - JIMENG_API_URL
+ *
+ * ⚠️ 请勿在此文件中填写真实密钥，避免泄露到代码仓库
  */
 
 const JIMENG_CONFIG = {
-  // ========== 必填配置 ==========
-  apiKey: '',       // 即梦API Key（必填）
-  apiSecret: '',    // 即梦API Secret（如有）
+  apiKey: process.env.JIMENG_API_KEY || '',
+  apiSecret: process.env.JIMENG_API_SECRET || '',
+  baseUrl: process.env.JIMENG_API_URL || 'https://jimeng.jianying.com/api',
 
-  // ========== API地址 ==========
-  // 请根据即梦官方文档填写正确的API地址
-  baseUrl: 'https://jimeng.jianying.com/api',
+  model: 'jimeng-v2',
 
-  // ========== 模型配置 ==========
-  model: 'jimeng-v2',  // 模型版本
-
-  // ========== 输出配置 ==========
   output: {
     width: 1024,
     height: 1024,
     quality: 95,
-    format: 'jpg',    // 输出格式：jpg / png
+    format: 'jpg',
   },
 
-  // ========== 生成参数 ==========
   generation: {
-    steps: 30,         // 推理步数
-    cfgScale: 7.5,     // 提示词引导强度
-    seed: -1,          // 随机种子，-1为随机
-    sampler: 'euler',  // 采样器
+    steps: 30,
+    cfgScale: 7.5,
+    seed: -1,
+    sampler: 'euler',
   },
 };
 

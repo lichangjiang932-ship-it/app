@@ -1,4 +1,6 @@
 // pages/create/create.js
+const { debounce } = require('../../utils/util.js');
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -8,6 +10,7 @@ Page({
     frontPhoto: '',
     multiPhotos: [],
     canNext: false,
+    isGenerating: false, // 防重复提交
     // 模板
     currentTplCategory: 'all',
     tplCategories: [
@@ -26,6 +29,8 @@ Page({
     // 生成
     genStatus: { title: '正在上传照片', desc: '准备中...', progress: 0 },
     taskId: '',
+    // 订阅消息模板ID（在微信后台获取后填入）
+    subscribeTmplId: '',
   },
 
   onLoad() {
@@ -49,12 +54,25 @@ Page({
     }
   },
 
+  // 压缩图片
+  compressImage(tempPath) {
+    return new Promise((resolve) => {
+      wx.compressImage({
+        src: tempPath,
+        quality: 80,
+        success: (res) => resolve(res.tempFilePath),
+        fail: () => resolve(tempPath), // 压缩失败用原图
+      });
+    });
+  },
+
   // 上传
   chooseFrontPhoto() {
     wx.chooseMedia({
       count: 1, mediaType: ['image'], sourceType: ['album', 'camera'], sizeType: ['compressed'],
-      success: (res) => {
-        this.setData({ frontPhoto: res.tempFiles[0].tempFilePath });
+      success: async (res) => {
+        const path = await this.compressImage(res.tempFiles[0].tempFilePath);
+        this.setData({ frontPhoto: path });
         this.checkCanNext();
       },
     });
@@ -62,10 +80,11 @@ Page({
 
   chooseFromAlbum() {
     const remain = 30 - this.data.multiPhotos.length;
+    if (remain <= 0) return wx.showToast({ title: '最多上传30张', icon: 'none' });
     wx.chooseMedia({
       count: Math.min(remain, 9), mediaType: ['image'], sourceType: ['album'], sizeType: ['compressed'],
-      success: (res) => {
-        const paths = res.tempFiles.map(f => f.tempFilePath);
+      success: async (res) => {
+        const paths = await Promise.all(res.tempFiles.map(f => this.compressImage(f.tempFilePath)));
         const photos = [...this.data.multiPhotos, ...paths].slice(0, 30);
         this.setData({ multiPhotos: photos });
         this.checkCanNext();
@@ -76,8 +95,9 @@ Page({
   chooseFromCamera() {
     wx.chooseMedia({
       count: 1, mediaType: ['image'], sourceType: ['camera'], sizeType: ['compressed'],
-      success: (res) => {
-        const photos = [...this.data.multiPhotos, res.tempFiles[0].tempFilePath].slice(0, 30);
+      success: async (res) => {
+        const path = await this.compressImage(res.tempFiles[0].tempFilePath);
+        const photos = [...this.data.multiPhotos, path].slice(0, 30);
         this.setData({ multiPhotos: photos });
         this.checkCanNext();
       },
@@ -91,10 +111,11 @@ Page({
 
   chooseMultiPhotos() {
     const remain = 30 - this.data.multiPhotos.length;
+    if (remain <= 0) return wx.showToast({ title: '最多上传30张', icon: 'none' });
     wx.chooseMedia({
       count: Math.min(remain, 9), mediaType: ['image'], sourceType: ['album', 'camera'], sizeType: ['compressed'],
-      success: (res) => {
-        const paths = res.tempFiles.map(f => f.tempFilePath);
+      success: async (res) => {
+        const paths = await Promise.all(res.tempFiles.map(f => this.compressImage(f.tempFilePath)));
         const photos = [...this.data.multiPhotos, ...paths].slice(0, 30);
         this.setData({ multiPhotos: photos });
         this.checkCanNext();
@@ -187,13 +208,23 @@ Page({
 
   // 生成
   async startGenerate() {
-    this.setData({ currentStep: 3 });
-    this.updateGen('正在上传照片', '上传中...', 10);
+    if (this.data.isGenerating) return;
+    this.setData({ isGenerating: true, currentStep: 3 });
+    this.updateGen('正在上传照片', '压缩并上传中...', 10);
+
     const photoUrls = await this.uploadAllPhotos();
-    if (!photoUrls) return;
+    if (!photoUrls) {
+      this.setData({ isGenerating: false });
+      return;
+    }
+
     this.updateGen('创建生成任务', '提交中...', 30);
     const taskId = await this.createTask(photoUrls);
-    if (!taskId) return;
+    if (!taskId) {
+      this.setData({ isGenerating: false });
+      return;
+    }
+
     this.setData({ taskId });
     this.pollResult(taskId);
   },
@@ -202,12 +233,15 @@ Page({
     try {
       const all = [this.data.frontPhoto, ...this.data.multiPhotos];
       const ids = await Promise.all(all.map((path, i) => {
-        const ext = path.split('.').pop();
-        return wx.cloud.uploadFile({ cloudPath: `user-photos/${Date.now()}_${i}.${ext}`, filePath: path }).then(r => r.fileID);
+        const ext = path.split('.').pop() || 'jpg';
+        return wx.cloud.uploadFile({
+          cloudPath: `user-photos/${Date.now()}_${i}.${ext}`,
+          filePath: path,
+        }).then(r => r.fileID);
       }));
       return ids;
     } catch (e) {
-      wx.showToast({ title: '上传失败', icon: 'none' });
+      wx.showToast({ title: '上传失败，请重试', icon: 'none' });
       this.setData({ currentStep: 1 });
       return null;
     }
@@ -215,10 +249,18 @@ Page({
 
   async createTask(photos) {
     try {
-      const res = await wx.cloud.callFunction({ name: 'tasks', data: { action: 'create', photos, templateId: this.data.selectedTemplate } });
+      const res = await wx.cloud.callFunction({
+        name: 'tasks',
+        data: { action: 'create', photos, templateId: this.data.selectedTemplate },
+      });
+      if (res.result?.error) {
+        wx.showToast({ title: res.result.error, icon: 'none' });
+        this.setData({ currentStep: 2 });
+        return null;
+      }
       return res.result.taskId;
     } catch (e) {
-      wx.showToast({ title: '创建失败', icon: 'none' });
+      wx.showToast({ title: '创建失败，请重试', icon: 'none' });
       this.setData({ currentStep: 2 });
       return null;
     }
@@ -226,24 +268,53 @@ Page({
 
   pollResult(taskId) {
     let progress = 30;
+    let pollCount = 0;
+    const maxPolls = 60; // 最多轮询3分钟
+
     const timer = setInterval(async () => {
+      pollCount++;
+      if (pollCount > maxPolls) {
+        clearInterval(timer);
+        this.setData({ isGenerating: false });
+        wx.showModal({
+          title: '处理中',
+          content: '生成时间较长，请稍后在"我的"查看结果',
+          showCancel: false,
+          success: () => wx.switchTab({ url: '/pages/profile/profile' }),
+        });
+        return;
+      }
+
       try {
-        const res = await wx.cloud.callFunction({ name: 'tasks', data: { action: 'status', taskId } });
+        const res = await wx.cloud.callFunction({
+          name: 'tasks',
+          data: { action: 'status', taskId },
+        });
         const task = res.result;
         if (task.status === 'processing') {
-          progress = Math.min(progress + Math.random() * 8, 90);
+          progress = Math.max(progress, task.progress || 0);
+          progress = Math.min(progress + Math.random() * 5, 90);
           this.updateGen('AI正在生成中', `已完成 ${Math.round(progress)}%...`, Math.round(progress));
         } else if (task.status === 'completed') {
           clearInterval(timer);
+          this.setData({ isGenerating: false });
           this.updateGen('生成完成！', '跳转中...', 100);
           setTimeout(() => wx.redirectTo({ url: `/subpkg/result/result?taskId=${taskId}` }), 800);
         } else if (task.status === 'failed') {
           clearInterval(timer);
-          wx.showModal({ title: '生成失败', content: task.errorMsg || '请重试', showCancel: false, success: () => this.setData({ currentStep: 2 }) });
+          this.setData({ isGenerating: false });
+          wx.showModal({
+            title: '生成失败',
+            content: task.errorMsg || '请重试',
+            showCancel: false,
+            success: () => this.setData({ currentStep: 2 }),
+          });
         }
-      } catch (e) {}
+      } catch (e) {
+        // 网络异常不中断轮询
+        console.error('轮询失败:', e);
+      }
     }, 3000);
-    setTimeout(() => { clearInterval(timer); if (this.data.currentStep === 3) { wx.showModal({ title: '超时', content: '请稍后在"我的"查看结果', showCancel: false, success: () => wx.switchTab({ url: '/pages/profile/profile' }) }); } }, 180000);
   },
 
   updateGen(title, desc, progress) {
@@ -252,10 +323,15 @@ Page({
 
   // 订阅消息通知
   subscribeMsg() {
+    const tmplId = this.data.subscribeTmplId;
+    if (!tmplId) {
+      wx.showToast({ title: '通知功能暂未配置', icon: 'none' });
+      return;
+    }
     wx.requestSubscribeMessage({
-      tmplIds: ['YOUR_TEMPLATE_ID'], // 替换为你的订阅消息模板ID
+      tmplIds: [tmplId],
       success: (res) => {
-        if (res['YOUR_TEMPLATE_ID'] === 'accept') {
+        if (res[tmplId] === 'accept') {
           wx.showToast({ title: '已订阅，完成后通知你', icon: 'success' });
         }
       },

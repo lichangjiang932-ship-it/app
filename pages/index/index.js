@@ -115,7 +115,7 @@ Page({
     });
   },
 
-  // ===== 上拉预加载（提前200px触发） =====
+  // ===== 上拉预加载 =====
   onLoadMore() {
     if (!this.data.isLoadingMore && !this.data.noMore) {
       this.loadMore();
@@ -140,7 +140,6 @@ Page({
       });
       const data = res.result?.data || this.getDefaultHot();
       this.setData({ hotTemplates: data });
-      // 写入缓存
       wx.setStorageSync(CACHE_KEY_TEMPLATES, { data, time: Date.now() });
     } catch (e) {
       this.setData({ hotTemplates: this.getDefaultHot() });
@@ -155,7 +154,7 @@ Page({
     try {
       const res = await wx.cloud.callFunction({
         name: 'templates',
-        data: { action: 'works', category: this.data.currentCategory, page, pageSize: PAGE_SIZE },
+        data: { action: 'list', category: this.data.currentCategory, page, pageSize: PAGE_SIZE },
       });
       const items = (res.result?.data || this.getDefaultWorks()).map(item => ({
         ...item,
@@ -172,7 +171,7 @@ Page({
     }
   },
 
-  // 核心算法：分配到更矮的列
+  // 瀑布流分配到更矮的列
   appendWaterfallItems(items, page) {
     const left = page === 1 ? [] : [...this.data.leftItems];
     const right = page === 1 ? [] : [...this.data.rightItems];
@@ -182,14 +181,13 @@ Page({
     items.forEach(item => {
       if (lh <= rh) {
         left.push(item);
-        lh += item.imgHeight + 100; // 图片高度 + 信息区
+        lh += item.imgHeight + 100;
       } else {
         right.push(item);
         rh += item.imgHeight + 100;
       }
     });
 
-    // setData 优化：一次性 concat
     this.setData({
       leftItems: left,
       rightItems: right,
@@ -210,7 +208,6 @@ Page({
   switchCategory(e) {
     const id = e.currentTarget.dataset.id;
     if (id === this.data.currentCategory) return;
-    // 震动反馈
     wx.vibrateShort && wx.vibrateShort({ type: 'light' });
     this.setData({
       currentCategory: id,
@@ -252,11 +249,13 @@ Page({
     wx.navigateTo({ url: `/subpkg/detail/detail?id=${e.currentTarget.dataset.id}` });
   },
 
-  // 点赞
-  onLike(e) {
+  // 点赞 — 持久化到云数据库
+  async onLike(e) {
     wx.vibrateShort && wx.vibrateShort({ type: 'light' });
     const id = e.currentTarget.dataset.id;
     const liked = e.currentTarget.dataset.liked;
+
+    // 乐观更新UI
     const update = items => items.map(i =>
       i.id === id ? { ...i, liked: !liked, likeCount: (i.likeCount || 0) + (liked ? -1 : 1) } : i
     );
@@ -264,17 +263,31 @@ Page({
       leftItems: update(this.data.leftItems),
       rightItems: update(this.data.rightItems),
     });
+
+    // 持久化到云端
+    try {
+      await wx.cloud.callFunction({
+        name: 'tasks',
+        data: { action: 'like', taskId: id },
+      });
+    } catch (e) {
+      // 失败时回滚
+      const rollback = items => items.map(i =>
+        i.id === id ? { ...i, liked, likeCount: (i.likeCount || 0) + (liked ? 1 : -1) } : i
+      );
+      this.setData({
+        leftItems: rollback(this.data.leftItems),
+        rightItems: rollback(this.data.rightItems),
+      });
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    }
   },
 
-  // 图片加载失败占位
+  // 图片加载失败
   onImgError(e) {
-    // 设置默认占位图
-    const id = e.currentTarget.dataset.id;
-    // 注意：小程序中无法动态替换 image src，这里记录错误状态
-    console.warn('图片加载失败:', id);
+    console.warn('图片加载失败:', e.currentTarget.dataset.id);
   },
 
-  // 搜索 / 消息 / 个人
   onSearch() { wx.showToast({ title: '搜索功能开发中', icon: 'none' }); },
   onMessage() { wx.showToast({ title: '消息中心开发中', icon: 'none' }); },
   goProfile() { wx.switchTab({ url: '/pages/profile/profile' }); },
