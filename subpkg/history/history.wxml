@@ -1,0 +1,45 @@
+<!--subpkg/history/history.wxml-->
+<view class="page">
+  <nav-bar title="我的作品" back="{{true}}" fixed="{{true}}" placeholder="{{true}}"></nav-bar>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-center">
+    <view class="spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 作品列表 -->
+  <block wx:elif="{{works.length > 0}}">
+    <view class="works-grid">
+      <view class="work-card" wx:for="{{works}}" wx:key="_id" bindtap="viewResult" data-id="{{item._id}}">
+        <view class="work-img-wrap">
+          <image class="work-img" src="{{item.cover}}" mode="aspectFill" lazy-load="{{true}}" />
+          <view class="work-status {{item.status}}">
+            <text wx:if="{{item.status === 'completed'}}">✓</text>
+            <text wx:elif="{{item.status === 'processing'}}">⏳</text>
+            <text wx:elif="{{item.status === 'failed'}}">✕</text>
+          </view>
+        </view>
+        <view class="work-info">
+          <text class="work-name ellipsis">AI写真</text>
+          <text class="work-time">{{item.timeAgo}}</text>
+        </view>
+        <view class="work-actions">
+          <view class="work-action" catchtap="onSave" data-item="{{item}}">
+            <text>💾</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 空状态 -->
+  <view wx:else class="empty-state">
+    <text class="empty-emoji">📭</text>
+    <text class="empty-text">还没有作品</text>
+    <text class="empty-hint">快去制作你的第一张AI写真吧</text>
+    <view class="empty-btn" bindtap="goCreate">去创作 ✨</view>
+  </view>
+
+  <view class="safe-area-bottom" style="height: 40rpx;"></view>
+</view>

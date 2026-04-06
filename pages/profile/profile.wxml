@@ -65,7 +65,7 @@
       <text class="section-title">📷 我的作品</text>
       <view class="section-tabs">
         <text class="tab {{worksTab === 'all' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="all">全部</text>
-        <text class="tab {{worksTab === 'liked' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="liked">收藏</text>
+        <text class="tab" bindtap="goFavorites">收藏</text>
       </view>
     </view>
 

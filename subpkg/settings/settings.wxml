@@ -1,0 +1,87 @@
+<!--subpkg/settings/settings.wxml-->
+<view class="page">
+  <nav-bar title="设置" back="{{true}}" fixed="{{true}}" placeholder="{{true}}"></nav-bar>
+
+  <!-- 用户信息 -->
+  <view class="section">
+    <view class="user-card">
+      <view class="avatar-wrap" bindtap="onChangeAvatar">
+        <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" />
+        <view class="avatar-edit">📷</view>
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{userInfo.nickName || '未登录'}}</text>
+        <text class="user-id" wx:if="{{userId}}">ID: {{userId}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 账号设置 -->
+  <view class="section">
+    <text class="group-title">账号设置</text>
+    <view class="menu-card">
+      <view class="menu-item" bindtap="onEditProfile">
+        <text class="menu-icon">👤</text>
+        <text class="menu-text">修改昵称</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="onChangeAvatar">
+        <text class="menu-icon">📷</text>
+        <text class="menu-text">更换头像</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 通用设置 -->
+  <view class="section">
+    <text class="group-title">通用设置</text>
+    <view class="menu-card">
+      <view class="menu-item">
+        <text class="menu-icon">🔔</text>
+        <text class="menu-text">消息通知</text>
+        <switch checked="{{notifyEnabled}}" bindchange="onToggleNotify" color="#FF6B9D" />
+      </view>
+      <view class="menu-item">
+        <text class="menu-icon">💾</text>
+        <text class="menu-text">生成后自动保存</text>
+        <switch checked="{{autoSave}}" bindchange="onToggleAutoSave" color="#FF6B9D" />
+      </view>
+      <view class="menu-item" bindtap="onClearCache">
+        <text class="menu-icon">🗑️</text>
+        <text class="menu-text">清除缓存</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="section">
+    <text class="group-title">关于</text>
+    <view class="menu-card">
+      <view class="menu-item" bindtap="onAbout">
+        <text class="menu-icon">ℹ️</text>
+        <text class="menu-text">关于我们</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="onPrivacy">
+        <text class="menu-icon">🔒</text>
+        <text class="menu-text">隐私政策</text>
+        <text class="menu-arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="onAgreement">
+        <text class="menu-icon">📜</text>
+        <text class="menu-text">用户协议</text>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="section" wx:if="{{userInfo}}">
+    <view class="logout-btn" bindtap="onLogout">退出登录</view>
+  </view>
+
+  <view class="version">妙鸭 v1.0.0 · 即梦AI驱动</view>
+  <view class="safe-area-bottom" style="height: 40rpx;"></view>
+</view>

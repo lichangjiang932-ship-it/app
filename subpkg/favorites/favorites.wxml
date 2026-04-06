@@ -1,0 +1,34 @@
+<!--subpkg/favorites/favorites.wxml-->
+<view class="page">
+  <nav-bar title="我的收藏" back="{{true}}" fixed="{{true}}" placeholder="{{true}}"></nav-bar>
+
+  <view wx:if="{{loading}}" class="loading-center">
+    <view class="spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <block wx:elif="{{favorites.length > 0}}">
+    <view class="fav-grid">
+      <view class="fav-card" wx:for="{{favorites}}" wx:key="id" bindtap="onTap" data-id="{{item.id}}">
+        <view class="fav-img-wrap">
+          <image class="fav-img" src="{{item.cover}}" mode="aspectFill" lazy-load="{{true}}" />
+          <view class="fav-remove" catchtap="onRemove" data-id="{{item.id}}">
+            <text>✕</text>
+          </view>
+        </view>
+        <view class="fav-info">
+          <text class="fav-name ellipsis">{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <view wx:else class="empty-state">
+    <text class="empty-emoji">💝</text>
+    <text class="empty-text">还没有收藏</text>
+    <text class="empty-hint">浏览模板时点击 ❤️ 即可收藏</text>
+    <view class="empty-btn" bindtap="goDiscover">去逛逛 ✨</view>
+  </view>
+
+  <view class="safe-area-bottom" style="height: 40rpx;"></view>
+</view>

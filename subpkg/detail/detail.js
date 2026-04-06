@@ -52,15 +52,25 @@ Page({
   toggleFav() {
     const newState = !this.data.isFavorited;
     this.setData({ isFavorited: newState });
-    // 持久化到本地存储
     try {
       const favorites = wx.getStorageSync('favorites') || {};
+      const details = wx.getStorageSync('favoriteDetails') || {};
       if (newState) {
         favorites[this.data.templateId] = true;
+        // 保存模板详情供收藏页展示
+        if (this.data.template) {
+          details[this.data.templateId] = {
+            id: this.data.templateId,
+            name: this.data.template.name || '模板',
+            cover: this.data.template.cover || '/images/demo/template1.jpg',
+          };
+        }
       } else {
         delete favorites[this.data.templateId];
+        delete details[this.data.templateId];
       }
       wx.setStorageSync('favorites', favorites);
+      wx.setStorageSync('favoriteDetails', details);
     } catch (e) {}
     wx.showToast({ title: newState ? '已收藏' : '已取消收藏', icon: 'none' });
   },

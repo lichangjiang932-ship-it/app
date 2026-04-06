@@ -10,7 +10,10 @@
       "name": "detail",
       "pages": [
         "detail/detail",
-        "result/result"
+        "result/result",
+        "settings/settings",
+        "history/history",
+        "favorites/favorites"
       ]
     }
   ],

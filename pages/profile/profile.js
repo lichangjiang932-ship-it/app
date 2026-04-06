@@ -105,21 +105,12 @@ Page({
       });
       const raw = res.result?.data || [];
       const defaultHeights = [300, 380, 340, 420, 280, 360];
-      let items = raw.map((item, idx) => ({
+      const items = raw.map((item, idx) => ({
         ...item,
         timeAgo: timeAgo(item.createdAt),
         cover: (item.results && item.results[0]) || `/images/demo/template${(idx % 12) + 1}.jpg`,
         imgHeight: defaultHeights[idx % 6],
       }));
-
-      // 收藏 tab：过滤仅显示已收藏的作品
-      if (this.data.worksTab === 'liked') {
-        try {
-          const favorites = wx.getStorageSync('favorites') || {};
-          items = items.filter(item => favorites[item.templateId] || favorites[item.id]);
-        } catch (_) {}
-      }
-
       this.splitWorks(items);
     } catch (e) {
       this.splitWorks([]);
@@ -149,6 +140,10 @@ Page({
     wx.switchTab({ url: '/pages/create/create' });
   },
 
+  goFavorites() {
+    wx.navigateTo({ url: '/subpkg/favorites/favorites' });
+  },
+
   seeMyWorks() {},
 
   goVip() {
@@ -156,13 +151,13 @@ Page({
   },
 
   goSettings() {
-    wx.showToast({ title: '设置页开发中', icon: 'none' });
+    wx.navigateTo({ url: '/subpkg/settings/settings' });
   },
 
   onMenuTap(e) {
     const type = e.currentTarget.dataset.type;
     const actions = {
-      photos: () => wx.showToast({ title: '照片管理开发中', icon: 'none' }),
+      photos: () => wx.navigateTo({ url: '/subpkg/history/history' }),
       orders: () => wx.showToast({ title: '订单功能开发中', icon: 'none' }),
       vip: () => this.goVip(),
       invite: () => wx.showToast({ title: '邀请功能开发中', icon: 'none' }),
